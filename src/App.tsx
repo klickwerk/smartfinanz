@@ -1,4 +1,9 @@
 import React, { useState } from 'react';
+import { useAuth } from './hooks/useAuth';
+import { useFamily } from './hooks/useFamily';
+import { useTransactions } from './hooks/useTransactions';
+import { AuthModal } from './components/auth/AuthModal';
+import { FamilySetupModal } from './components/family/FamilySetupModal';
 import { Dashboard } from './components/dashboard/Dashboard';
 import { FinancialBoard } from './components/board/FinancialBoard';
 import { FinancialProjects } from './components/projects/FinancialProjects';
@@ -7,31 +12,89 @@ import { Settings } from './components/settings/Settings';
 import { TransactionForm } from './components/transactions/TransactionForm';
 import { BottomNavigation } from './components/navigation/BottomNavigation';
 import { FloatingActionButton } from './components/navigation/FloatingActionButton';
-import { mockTransactions } from './data/mockData';
 import { Transaction } from './types';
 
 function App() {
+  const { user, profile, loading: authLoading } = useAuth();
+  const { family, loading: familyLoading } = useFamily();
+  const { 
+    transactions, 
+    addTransaction, 
+    updateTransaction, 
+    markCompleted 
+  } = useTransactions();
+  
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isFamilySetupModalOpen, setIsFamilySetupModalOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | undefined>();
-  const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
 
-  const handleAddTransaction = (newTransaction: Omit<Transaction, 'id'>) => {
+  // Show loading screen while checking auth
+  if (authLoading || familyLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-zinc-900 via-black to-zinc-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-turquoise-500/20 border-t-turquoise-500 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-white/60">Wird geladen...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show auth modal if not authenticated
+  if (!user) {
+    return (
+      <>
+        <div className="min-h-screen bg-gradient-to-b from-zinc-900 via-black to-zinc-900 flex items-center justify-center">
+          <div className="text-center">
+            <h1 className="text-4xl font-bold text-white mb-4">FinanzApp</h1>
+            <p className="text-white/60 mb-8">Intelligente Finanzplanung für Familien</p>
+            <button
+              onClick={() => setIsAuthModalOpen(true)}
+              className="bg-gradient-to-r from-turquoise-500 to-turquoise-400 text-white font-semibold py-4 px-8 rounded-xl hover:from-turquoise-600 hover:to-turquoise-500 transition-all duration-200"
+            >
+              Jetzt starten
+            </button>
+          </div>
+        </div>
+        <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
+      </>
+    );
+  }
+
+  // Show family setup if user has no family
+  if (!profile?.family_id) {
+    return (
+      <>
+        <div className="min-h-screen bg-gradient-to-b from-zinc-900 via-black to-zinc-900 flex items-center justify-center">
+          <div className="text-center">
+            <h1 className="text-3xl font-bold text-white mb-4">Willkommen, {profile?.full_name || 'Nutzer'}!</h1>
+            <p className="text-white/60 mb-8">Erstelle oder tritt einer Familie bei, um zu beginnen.</p>
+            <button
+              onClick={() => setIsFamilySetupModalOpen(true)}
+              className="bg-gradient-to-r from-turquoise-500 to-turquoise-400 text-white font-semibold py-4 px-8 rounded-xl hover:from-turquoise-600 hover:to-turquoise-500 transition-all duration-200"
+            >
+              Familie erstellen
+            </button>
+          </div>
+        </div>
+        <FamilySetupModal 
+          isOpen={isFamilySetupModalOpen} 
+          onClose={() => setIsFamilySetupModalOpen(false)} 
+        />
+      </>
+    );
+  }
+
+  const handleAddTransaction = async (newTransaction: Omit<Transaction, 'id'>) => {
     if (editingTransaction) {
       // Update existing transaction
-      setTransactions(prev => prev.map(t => 
-        t.id === editingTransaction.id 
-          ? { ...newTransaction, id: editingTransaction.id }
-          : t
-      ));
+      await updateTransaction(editingTransaction.id, newTransaction);
       setEditingTransaction(undefined);
     } else {
       // Add new transaction
-      const transaction: Transaction = {
-        ...newTransaction,
-        id: Date.now().toString()
-      };
-      setTransactions(prev => [transaction, ...prev]);
+      await addTransaction(newTransaction);
     }
   };
 
@@ -40,12 +103,8 @@ function App() {
     setIsTransactionModalOpen(true);
   };
 
-  const handleMarkCompleted = (transactionId: string) => {
-    setTransactions(prev => prev.map(t => 
-      t.id === transactionId 
-        ? { ...t, status: 'completed' as const }
-        : t
-    ));
+  const handleMarkCompleted = async (transactionId: string) => {
+    await markCompleted(transactionId);
   };
 
   const handleCloseModal = () => {
@@ -56,7 +115,7 @@ function App() {
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':
-        return <Dashboard />;
+        return <Dashboard transactions={transactions} />;
       case 'board':
         return (
           <FinancialBoard
@@ -73,7 +132,7 @@ function App() {
       case 'settings':
         return <Settings />;
       default:
-        return <Dashboard />;
+        return <Dashboard transactions={transactions} />;
     }
   };
 
@@ -97,6 +156,12 @@ function App() {
           editTransaction={editingTransaction}
         />
       )}
+      
+      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
+      <FamilySetupModal 
+        isOpen={isFamilySetupModalOpen} 
+        onClose={() => setIsFamilySetupModalOpen(false)} 
+      />
     </div>
   );
 }

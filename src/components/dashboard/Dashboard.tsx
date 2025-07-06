@@ -1,11 +1,19 @@
 import React from 'react';
+import { Transaction } from '../../types';
+import { useTransactions } from '../../hooks/useTransactions';
 import { OverdueItemsCard } from './OverdueItemsCard';
 import { MonthlyOverviewCard } from './MonthlyOverviewCard';
 import { YearlyProjectionCard } from './YearlyProjectionCard';
-import { mockTransactions, monthlyData, yearlyData } from '../../data/mockData';
+import { yearlyData } from '../../data/mockData';
 
-export const Dashboard: React.FC = () => {
-  const overdueTransactions = mockTransactions.filter(t => t.status === 'overdue');
+interface DashboardProps {
+  transactions: Transaction[];
+}
+
+export const Dashboard: React.FC<DashboardProps> = ({ transactions }) => {
+  const { getMonthlyData } = useTransactions();
+  const overdueTransactions = transactions.filter(t => t.status === 'overdue');
+  const monthlyData = getMonthlyData();
 
   return (
     <div className="space-y-6 pb-24">
