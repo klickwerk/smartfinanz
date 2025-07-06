@@ -60,8 +60,20 @@ export const useFamily = () => {
   const createFamily = async (name: string, description?: string) => {
     if (!user) throw new Error('User not authenticated');
 
+    console.log('Creating family with user:', {
+      userId: user.id,
+      userEmail: user.email,
+      name,
+      description
+    });
+
     try {
+      // First, let's check if the user has a valid session
+      const { data: session, error: sessionError } = await supabase.auth.getSession();
+      console.log('Current session:', { session: session?.session?.user?.id, error: sessionError });
+
       // Create family
+      console.log('Attempting to create family...');
       const { data: familyData, error: familyError } = await supabase
         .from('families')
         .insert({
@@ -72,9 +84,14 @@ export const useFamily = () => {
         .select()
         .single();
 
-      if (familyError) throw familyError;
+      if (familyError) {
+        console.error('Family creation error:', familyError);
+        throw familyError;
+      }
+      console.log('Family created successfully:', familyData);
 
       // Add creator as admin member
+      console.log('Adding creator as admin member...');
       const { error: memberError } = await supabase
         .from('family_members')
         .insert({
@@ -83,19 +100,30 @@ export const useFamily = () => {
           role: 'admin',
         });
 
-      if (memberError) throw memberError;
+      if (memberError) {
+        console.error('Member creation error:', memberError);
+        throw memberError;
+      }
+      console.log('Admin member added successfully');
 
       // Update user profile with family_id
+      console.log('Updating user profile with family_id...');
       const { error: profileError } = await supabase
         .from('profiles')
         .update({ family_id: familyData.id })
         .eq('id', user.id);
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error('Profile update error:', profileError);
+        throw profileError;
+      }
+      console.log('Profile updated successfully');
 
       setFamily(familyData);
+      console.log('Family creation process completed successfully');
       return familyData;
     } catch (err) {
+      console.error('Complete family creation error:', err);
       throw err;
     }
   };

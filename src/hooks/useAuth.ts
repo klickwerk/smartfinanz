@@ -41,6 +41,7 @@ export const useAuth = () => {
 
   const fetchProfile = async (userId: string) => {
     try {
+      console.log('Fetching profile for user:', userId);
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -49,7 +50,12 @@ export const useAuth = () => {
 
       if (error) {
         console.error('Error fetching profile:', error);
+        // If profile doesn't exist, this might be a new user
+        if (error.code === 'PGRST116') {
+          console.log('Profile not found, user might need to complete setup');
+        }
       } else {
+        console.log('Profile fetched successfully:', data);
         setProfile(data);
       }
     } catch (error) {

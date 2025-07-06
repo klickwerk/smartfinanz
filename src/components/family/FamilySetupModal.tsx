@@ -22,11 +22,17 @@ export const FamilySetupModal: React.FC<FamilySetupModalProps> = ({ isOpen, onCl
     setLoading(true);
     setError(null);
 
+    console.log('Family setup form submitted:', { familyName, description });
+
     try {
       await createFamily(familyName, description);
+      console.log('Family created successfully, closing modal');
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      console.error('Family setup error:', err);
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+      console.log('Setting error message:', errorMessage);
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -80,7 +86,18 @@ export const FamilySetupModal: React.FC<FamilySetupModalProps> = ({ isOpen, onCl
 
           {error && (
             <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3">
-              <p className="text-red-400 text-sm">{error}</p>
+              <div className="text-red-400 text-sm">
+                <p className="font-medium mb-1">Fehler beim Erstellen der Familie:</p>
+                <p className="text-xs opacity-90">{error}</p>
+                <details className="mt-2">
+                  <summary className="cursor-pointer text-xs opacity-70 hover:opacity-100">
+                    Technische Details anzeigen
+                  </summary>
+                  <pre className="mt-1 text-xs opacity-60 whitespace-pre-wrap break-all">
+                    {JSON.stringify(error, null, 2)}
+                  </pre>
+                </details>
+              </div>
             </div>
           )}
 

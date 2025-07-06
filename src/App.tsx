@@ -32,11 +32,19 @@ function App() {
 
   // Show loading screen while checking auth
   if (authLoading || familyLoading) {
+    console.log('App loading state:', { authLoading, familyLoading, user: !!user, profile: !!profile });
     return (
       <div className="min-h-screen bg-gradient-to-b from-zinc-900 via-black to-zinc-900 flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-turquoise-500/20 border-t-turquoise-500 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-white/60">Wird geladen...</p>
+          <p className="text-white/60">
+            Wird geladen... 
+            {authLoading && ' (Authentifizierung)'}
+            {familyLoading && ' (Familie)'}
+          </p>
+          <p className="text-white/40 text-xs mt-2">
+            User: {user ? '✓' : '✗'} | Profile: {profile ? '✓' : '✗'}
+          </p>
         </div>
       </div>
     );
@@ -44,6 +52,7 @@ function App() {
 
   // Show auth modal if not authenticated
   if (!user) {
+    console.log('No user found, showing auth modal');
     return (
       <>
         <div className="min-h-screen bg-gradient-to-b from-zinc-900 via-black to-zinc-900 flex items-center justify-center">
@@ -65,6 +74,7 @@ function App() {
 
   // Show family setup if user has no family
   if (!profile?.family_id) {
+    console.log('User has no family, showing family setup:', { profile });
     return (
       <>
         <div className="min-h-screen bg-gradient-to-b from-zinc-900 via-black to-zinc-900 flex items-center justify-center">
