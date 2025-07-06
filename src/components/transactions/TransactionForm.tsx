@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { X, Plus, Minus, Calendar, Tag, MessageSquare, Clock, Repeat } from 'lucide-react';
+import { X, Plus, Minus, Calendar, Tag, MessageSquare, Clock } from 'lucide-react';
 import { Transaction } from '../../types';
-import { useRecurringPatterns } from '../../hooks/useRecurringPatterns';
 
 interface TransactionFormProps {
   onClose: () => void;
@@ -14,8 +13,6 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
   onSubmit, 
   editTransaction 
 }) => {
-  const { addPattern, calculateNextOccurrence } = useRecurringPatterns();
-  
   const [formData, setFormData] = useState({
     title: editTransaction?.title || '',
     amount: editTransaction ? Math.abs(editTransaction.amount).toString() : '',
@@ -26,13 +23,6 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
     description: editTransaction?.description || '',
     tags: editTransaction?.tags || [] as string[],
     status: editTransaction?.status || 'pending' as 'pending' | 'someday'
-  });
-  
-  const [isRecurring, setIsRecurring] = useState(false);
-  const [recurringData, setRecurringData] = useState({
-    recurrence_type: 'monthly' as 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly',
-    recurrence_interval: 1,
-    end_date: '',
   });
 
   const [tagInput, setTagInput] = useState('');
@@ -45,49 +35,13 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (isRecurring && !editTransaction) {
-      // Create recurring pattern
-      handleCreateRecurringPattern();
-    } else {
-      // Create/update single transaction
-      const transaction: Omit<Transaction, 'id'> = {
-        ...formData,
-        amount: formData.type === 'expense' ? -Math.abs(Number(formData.amount)) : Math.abs(Number(formData.amount)),
-      };
+    const transaction: Omit<Transaction, 'id'> = {
+      ...formData,
+      amount: formData.type === 'expense' ? -Math.abs(Number(formData.amount)) : Math.abs(Number(formData.amount)),
+    };
 
-      onSubmit(transaction);
-      onClose();
-    }
-  };
-
-  const handleCreateRecurringPattern = async () => {
-    try {
-      const nextOccurrence = calculateNextOccurrence(
-        formData.date,
-        recurringData.recurrence_type,
-        recurringData.recurrence_interval
-      );
-
-      await addPattern({
-        title: formData.title,
-        amount: Math.abs(Number(formData.amount)),
-        category: formData.category,
-        type: formData.type,
-        currency: formData.currency,
-        description: formData.description,
-        tags: formData.tags,
-        recurrence_type: recurringData.recurrence_type,
-        recurrence_interval: recurringData.recurrence_interval,
-        start_date: formData.date,
-        end_date: recurringData.end_date || undefined,
-        next_occurrence_date: nextOccurrence,
-        is_active: true,
-      });
-
-      onClose();
-    } catch (error) {
-      console.error('Error creating recurring pattern:', error);
-    }
+    onSubmit(transaction);
+    onClose();
   };
 
   const addTag = () => {
@@ -206,7 +160,6 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
           </div>
 
           {/* Planning Status */}
-          {!isRecurring && (
           <div>
             <label className="block text-white/80 text-sm font-medium mb-2">Planung</label>
             <div className="flex bg-white/5 rounded-2xl p-1">
@@ -236,13 +189,11 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
               </button>
             </div>
           </div>
-          )}
 
           {/* Date - only required if not "someday" */}
-          {(!isRecurring || formData.status !== 'someday') && (
           <div>
             <label className="block text-white/80 text-sm font-medium mb-2">
-              {isRecurring ? 'Startdatum' : `Datum ${formData.status === 'someday' ? '(optional)' : ''}`}
+              Datum {formData.status === 'someday' && '(optional)'}
             </label>
             <div className="relative">
               <input
@@ -255,100 +206,6 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
               <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-white/40 pointer-events-none" />
             </div>
           </div>
-          )}
-
-          {/* Recurring Options */}
-          {!editTransaction && (
-            <div>
-              <label className="block text-white/80 text-sm font-medium mb-2">Wiederholung</label>
-              <div className="flex bg-white/5 rounded-2xl p-1">
-                <button
-                  type="button"
-                  onClick={() => setIsRecurring(false)}
-                  className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl transition-all ${
-                    !isRecurring
-                      ? 'bg-turquoise-500/20 text-turquoise-400'
-                      : 'text-white/60 hover:text-white/80'
-                  }`}
-                >
-                  <Calendar className="w-4 h-4" />
-                  Einmalig
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsRecurring(true)}
-                  className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl transition-all ${
-                    isRecurring
-                      ? 'bg-purple-500/20 text-purple-400'
-                      : 'text-white/60 hover:text-white/80'
-                  }`}
-                >
-                  <Repeat className="w-4 h-4" />
-                  Wiederkehrend
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Recurring Pattern Details */}
-          {isRecurring && (
-            <>
-              <div>
-                <label className="block text-white/80 text-sm font-medium mb-2">Wiederholungstyp</label>
-                <select
-                  value={recurringData.recurrence_type}
-                  onChange={(e) => setRecurringData(prev => ({ 
-                    ...prev, 
-                    recurrence_type: e.target.value as any 
-                  }))}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-turquoise-500"
-                >
-                  <option value="daily">Täglich</option>
-                  <option value="weekly">Wöchentlich</option>
-                  <option value="monthly">Monatlich</option>
-                  <option value="quarterly">Vierteljährlich</option>
-                  <option value="yearly">Jährlich</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-white/80 text-sm font-medium mb-2">Intervall</label>
-                <input
-                  type="number"
-                  min="1"
-                  value={recurringData.recurrence_interval}
-                  onChange={(e) => setRecurringData(prev => ({ 
-                    ...prev, 
-                    recurrence_interval: parseInt(e.target.value) || 1 
-                  }))}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-turquoise-500"
-                  placeholder="1"
-                />
-                <p className="text-white/60 text-xs mt-1">
-                  Alle {recurringData.recurrence_interval} {
-                    recurringData.recurrence_type === 'daily' ? 'Tag(e)' :
-                    recurringData.recurrence_type === 'weekly' ? 'Woche(n)' :
-                    recurringData.recurrence_type === 'monthly' ? 'Monat(e)' :
-                    recurringData.recurrence_type === 'quarterly' ? 'Quartal(e)' :
-                    'Jahr(e)'
-                  }
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-white/80 text-sm font-medium mb-2">Enddatum (optional)</label>
-                <input
-                  type="date"
-                  value={recurringData.end_date}
-                  onChange={(e) => setRecurringData(prev => ({ 
-                    ...prev, 
-                    end_date: e.target.value 
-                  }))}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-turquoise-500"
-                />
-              </div>
-            </>
-          )}
 
           {/* Tags */}
           <div>
@@ -409,8 +266,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
             type="submit"
             className="w-full bg-gradient-to-r from-turquoise-500 to-turquoise-400 text-white font-semibold py-4 rounded-xl hover:from-turquoise-600 hover:to-turquoise-500 transition-all duration-200 active:scale-[0.98]"
           >
-            {editTransaction ? 'Änderungen speichern' : 
-             isRecurring ? 'Wiederholung erstellen' : 'Transaktion speichern'}
+            {editTransaction ? 'Änderungen speichern' : 'Transaktion speichern'}
           </button>
         </form>
       </div>
