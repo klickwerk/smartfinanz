@@ -1,0 +1,376 @@
+{
+  "navigation": {
+    "home": "Home",
+    "planning": "Planning",
+    "budgets": "Budgets",
+    "projects": "Projects",
+    "settings": "Settings"
+  },
+  "dashboard": {
+    "title": "Hello {name}! 👋",
+    "subtitle": {
+      "overall": "Here's your family's financial overview",
+      "house": "Here's our household",
+      "personal": "Your financial overview",
+      "member": "This is {name}'s overview"
+    },
+    "today": "Today",
+    "thisMonth": "This Month",
+    "plannedExpenses": "Planned Expenses",
+    "surplus": "Surplus",
+    "savingGoals": "Saving Goals",
+    "active": "active",
+    "overdue": "Overdue",
+    "total": "Total",
+    "income": "Income",
+    "expenses": "Expenses",
+    "balance": "Balance",
+    "monthProgress": "Month Progress",
+    "daysRemaining": "{days} days left"
+  },
+  "planning": {
+    "title": "Planning",
+    "subtitle": {
+      "overall": "Your central workspace for family finances",
+      "house": "Household planning and shared finances",
+      "personal": "Your personal financial planning",
+      "member": "{name}'s financial planning"
+    },
+    "quickAdd": "Quick add:",
+    "addIncome": "+ Income",
+    "addExpense": "+ Expense",
+    "addRecurring": "+ Recurring",
+    "columns": {
+      "backlog": "Backlog (Overdue)",
+      "thisMonth": "This Month",
+      "nextMonth": "Next Month",
+      "thisYear": "This Year",
+      "someday": "Someday",
+      "completed": "Completed"
+    },
+    "addTransaction": "Add Transaction",
+    "noItems": "No items",
+    "net": "Net:",
+    "completed": "Done",
+    "undo": "Undo",
+    "overdue": "Overdue",
+    "budgetAllocation": "Budget Allocation",
+    "editBudgetHint": "💡 Click here to edit the budget",
+    "searchResults": "{count} results",
+    "searchFor": "Search for:",
+    "noSearchResults": "No matching transactions found",
+    "tryDifferentSearch": "Try a different search term"
+  },
+  "budgets": {
+    "title": "Budgets",
+    "subtitle": {
+      "overall": "Manage all family budgets",
+      "house": "Shared household budgets",
+      "personal": "Your personal budget pots",
+      "member": "{name}'s budget pots"
+    },
+    "totalBudget": "Total Budget",
+    "spent": "Spent",
+    "available": "Available",
+    "exceeded": "Exceeded",
+    "quickCreate": "Quick create:",
+    "groceries": "+ Groceries",
+    "personal": "+ Personal",
+    "transport": "+ Transport",
+    "entertainment": "+ Entertainment",
+    "noBudgets": {
+      "overall": "No budgets yet",
+      "house": "No household budgets",
+      "member": "No budgets for {name}"
+    },
+    "createFirst": {
+      "overall": "Create your first budget to track expenses",
+      "house": "Create the first household budget for shared expenses",
+      "member": "Create the first budget for {name}"
+    },
+    "createButton": {
+      "overall": "Create first budget",
+      "house": "Create household budget",
+      "member": "Create budget for {name}"
+    },
+    "used": "used",
+    "remaining": "remaining",
+    "addExpenseHint": "💡 Click here to add an expense"
+  },
+  "projects": {
+    "title": "Financial Projects",
+    "subtitle": {
+      "overall": "Manage all family saving goals",
+      "house": "Shared household saving goals",
+      "personal": "Your personal saving goals",
+      "member": "{name}'s saving goals"
+    },
+    "overview": "Overview",
+    "totalProgress": "Total Progress",
+    "thisWeek": "+12% this week",
+    "transferMoney": "Add surplus to saving goal",
+    "transferDescription": "Got money left over? Put it into your saving goals! 🎯",
+    "transferButton": "Transfer Money",
+    "noProjects": {
+      "active": "No active saving goals",
+      "completed": "No completed saving goals",
+      "all": "No saving goals yet"
+    },
+    "createFirst": "Create your first saving goal and start saving!",
+    "createButton": "Create first saving goal",
+    "progress": "Progress",
+    "missing": "still needed",
+    "participants": "Participants",
+    "days": "days",
+    "overdue": "Overdue",
+    "nextMilestone": "Next milestone:",
+    "history": "History ({count} entries)",
+    "editHint": "💡 Click here to edit the saving goal",
+    "status": {
+      "active": "Active",
+      "paused": "Paused",
+      "completed": "Completed"
+    },
+    "filter": {
+      "active": "Active Goals",
+      "completed": "Completed",
+      "all": "All"
+    },
+    "quickAdd": "Quick add:",
+    "categories": {
+      "travel": "+ Travel",
+      "housing": "+ Housing",
+      "investments": "+ Investments",
+      "emergency": "+ Emergency Fund"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Manage app and profile",
+    "totalWealth": "Total Wealth",
+    "premiumMember": "Premium Member",
+    "groups": {
+      "profile": "Profile",
+      "family": "Family",
+      "app": "App",
+      "privacy": "Privacy & Security",
+      "support": "Support"
+    },
+    "items": {
+      "personalData": "Personal Data",
+      "notifications": "Notifications",
+      "manageFamily": "Manage Family",
+      "defaultView": "Default View",
+      "design": "Design",
+      "language": "Language",
+      "currency": "Currency",
+      "help": "Help & Support",
+      "accountSecurity": "Account Security",
+      "dataManagement": "Data Management",
+      "appSecurity": "App Security"
+    },
+    "values": {
+      "demoUser": "Demo User",
+      "enabled": "Enabled",
+      "inviteMembers": "Invite Members",
+      "ourHousehold": "Our Household",
+      "dark": "Dark",
+      "secure": "Secure",
+      "protected": "Protected",
+      "configured": "Configured"
+    },
+    "appInfo": "FinanzApp v1.0.0",
+    "madeWith": "Made with ❤️ in Austria",
+    "privacy": {
+      "accountSecurity": {
+        "title": "Account Security",
+        "subtitle": "Manage password and authentication",
+        "changePassword": "Change Password",
+        "twoFactorAuth": "Two-Factor Authentication",
+        "activeSessions": "Active Sessions",
+        "loginActivity": "Login Activity",
+        "lastPasswordChange": "Last password change: {date}",
+        "twoFactorEnabled": "2FA is enabled",
+        "twoFactorDisabled": "2FA is disabled",
+        "activeSessions_count": "{count} active sessions",
+        "lastLogin": "Last login: {date}"
+      },
+      "dataManagement": {
+        "title": "Data Management",
+        "subtitle": "Export and manage your data",
+        "exportData": "Export Data",
+        "deleteAccount": "Delete Account",
+        "privacyPolicy": "Privacy Policy",
+        "termsOfService": "Terms of Service",
+        "exportDescription": "Download all your financial data",
+        "deleteDescription": "Permanently delete account and all data",
+        "lastExport": "Last export: {date}",
+        "noExports": "No exports created yet"
+      },
+      "appSecurity": {
+        "title": "App Security",
+        "subtitle": "Security settings for the app",
+        "appLock": "App Lock",
+        "securityNotifications": "Security Notifications",
+        "biometricAuth": "Biometric Authentication",
+        "autoLock": "Auto Lock",
+        "appLockEnabled": "App lock is enabled",
+        "appLockDisabled": "App lock is disabled",
+        "notificationsEnabled": "Notifications enabled",
+        "notificationsDisabled": "Notifications disabled"
+      }
+    },
+    "notifications": {
+      "title": "Notifications",
+      "subtitle": "Manage your notification settings",
+      "categories": {
+        "financial": "Financial Notifications",
+        "family": "Family Notifications",
+        "system": "System Notifications"
+      },
+      "delivery": {
+        "push": "Push Notifications",
+        "email": "Email Notifications",
+        "sound": "Sound Enabled",
+        "vibration": "Vibration Enabled"
+      },
+      "types": {
+        "budgetExceeded": "Budget Exceeded",
+        "budgetWarning": "Budget Warning",
+        "goalMilestone": "Goal Milestones",
+        "monthlySummary": "Monthly Summary",
+        "transactionReminders": "Transaction Reminders",
+        "familyActivity": "Family Activity",
+        "memberInvites": "Member Invites",
+        "sharedGoals": "Shared Goals",
+        "appUpdates": "App Updates",
+        "securityAlerts": "Security Alerts"
+      },
+      "quickActions": {
+        "enableAll": "Enable All",
+        "disableAll": "Disable All",
+        "onlyImportant": "Only Important"
+      }
+    }
+  },
+  "forms": {
+    "transaction": {
+      "title": {
+        "new": "New Transaction",
+        "edit": "Edit"
+      },
+      "expense": "Expense",
+      "income": "Income",
+      "title_field": "Title",
+      "amount": "Amount",
+      "category": "Category",
+      "date": "Date",
+      "assignedTo": "Assigned to",
+      "recurrence": "Recurrence",
+      "planning": "Planning",
+      "planned": "Planned",
+      "someday": "Someday",
+      "description": "Description (optional)",
+      "tags": "Tags",
+      "save": "Save Transaction",
+      "saveChanges": "Save Changes",
+      "delete": "Delete Transaction",
+      "deleteConfirm": "Do you really want to delete this transaction?",
+      "cancel": "Cancel",
+      "yes": "Yes, delete"
+    },
+    "budget": {
+      "title": {
+        "new": "New Budget",
+        "edit": "Edit Budget"
+      },
+      "name": "Budget Name",
+      "category": "Category",
+      "budgetAmount": "Budget Amount",
+      "alreadySpent": "Already Spent",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "recurrence": "Recurrence",
+      "assignedTo": "Assigned to",
+      "color": "Color",
+      "description": "Description (optional)",
+      "save": "Create Budget",
+      "saveChanges": "Save Changes",
+      "delete": "Delete Budget",
+      "deleteConfirm": "Do you really want to delete this budget?",
+      "householdHint": "💡 Household budgets are for shared expenses like groceries, rent, etc."
+    },
+    "project": {
+      "title": {
+        "new": "New Saving Goal",
+        "edit": "Edit Saving Goal"
+      },
+      "name": "Saving Goal Name",
+      "description": "Description",
+      "targetAmount": "Target Amount",
+      "alreadySaved": "Already Saved",
+      "progress": "Progress",
+      "saved": "saved",
+      "missing": "still needed",
+      "targetDate": "Target Date",
+      "category": "Category",
+      "status": "Status",
+      "save": "Create Saving Goal",
+      "saveChanges": "Save Changes",
+      "delete": "Delete Saving Goal",
+      "deleteConfirm": "Do you really want to delete this saving goal?"
+    },
+    "personalData": {
+      "title": "Personal Data",
+      "subtitle": "Edit your profile information",
+      "nameField": "Full Name",
+      "emailField": "Email Address",
+      "avatarField": "Profile Picture",
+      "changeAvatar": "Change profile picture",
+      "avatarHint": "Click the camera icon to change your profile picture",
+      "emailHint": "Email address can only be changed through account security",
+      "accountInfo": "Account Information",
+      "accountType": "Account Type",
+      "memberSince": "Member Since",
+      "lastLogin": "Last Login",
+      "saveButton": "Save Changes",
+      "unsavedChanges": "You have unsaved changes"
+    }
+  },
+  "common": {
+    "close": "Close",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "search": "Search...",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "total": "Total",
+    "of": "of",
+    "and": "and",
+    "or": "or",
+    "yes": "Yes",
+    "no": "No",
+    "enable": "Enable",
+    "disable": "Disable",
+    "configure": "Configure",
+    "view": "View",
+    "download": "Download"
+  },
+  "placeholders": {
+    "amount": "e.g. 250",
+    "email": "your@email.com",
+    "name": "e.g. John Doe",
+    "description": "Enter description...",
+    "title": "Enter title...",
+    "tag": "Add tag...",
+    "search": "Search..."
+  }
+}

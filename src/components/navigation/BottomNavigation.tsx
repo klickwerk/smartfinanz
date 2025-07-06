@@ -1,5 +1,6 @@
 import React from 'react';
-import { Home, Target, Receipt, Settings, Kanban } from 'lucide-react';
+import { NAVIGATION_TABS } from '../../constants/options';
+import { useTranslation } from '../../i18n';
 
 interface BottomNavigationProps {
   activeTab: string;
@@ -7,19 +8,26 @@ interface BottomNavigationProps {
 }
 
 export const BottomNavigation: React.FC<BottomNavigationProps> = ({ activeTab, onTabChange }) => {
-  const tabs = [
-    { id: 'dashboard', icon: Home, label: 'Home' },
-    { id: 'board', icon: Kanban, label: 'Board' },
-    { id: 'projects', icon: Target, label: 'Projekte' },
-    { id: 'transactions', icon: Receipt, label: 'Liste' },
-    { id: 'settings', icon: Settings, label: 'Einstellungen' }
-  ];
+  const { t } = useTranslation();
+
+  // Map tab IDs to translation keys
+  const getTabLabel = (tabId: string): string => {
+    const labelMap: Record<string, string> = {
+      'dashboard': t('navigation.home'),
+      'planung': t('navigation.planning'),
+      'budgets': t('navigation.budgets'),
+      'projects': t('navigation.projects'),
+      'settings': t('navigation.settings')
+    };
+    
+    return labelMap[tabId] || tabId;
+  };
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-30">
       <div className="bg-zinc-900/80 backdrop-blur-xl border-t border-white/10 px-6 py-3">
         <div className="flex items-center justify-around">
-          {tabs.map(({ id, icon: Icon, label }) => (
+          {NAVIGATION_TABS.map(({ id, icon: Icon }) => (
             <button
               key={id}
               onClick={() => onTabChange(id)}
@@ -30,7 +38,7 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({ activeTab, o
               } active:scale-95`}
             >
               <Icon className="w-5 h-5" />
-              <span className="text-xs font-medium">{label}</span>
+              <span className="text-xs font-medium">{getTabLabel(id)}</span>
             </button>
           ))}
         </div>

@@ -1,18 +1,30 @@
 import React from 'react';
 import { TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
 import { GlassCard } from '../common/GlassCard';
-import { MonthlyData } from '../../types';
+import { useCurrency } from '../../context/CurrencyContext';
+import { formatCurrency } from '../../utils/formatUtils';
 
 interface MonthlyOverviewCardProps {
-  monthlyData: MonthlyData[];
+  monthlyData: {
+    income: number;
+    expenses: number;
+    balance: number;
+  };
 }
 
 export const MonthlyOverviewCard: React.FC<MonthlyOverviewCardProps> = ({ monthlyData }) => {
-  const currentMonth = monthlyData[monthlyData.length - 1];
-  const previousMonth = monthlyData[monthlyData.length - 2];
-  
-  const balanceChange = currentMonth.balance - (previousMonth?.balance || 0);
-  const isPositive = balanceChange >= 0;
+  const { displayCurrency } = useCurrency();
+  const currentMonth = new Date().toLocaleDateString('de-AT', { month: 'short' });
+  const isPositive = monthlyData.balance >= 0;
+
+  // Calculate progress through the month
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  const totalDaysInMonth = endOfMonth.getDate();
+  const daysPassed = now.getDate();
+  const daysRemaining = totalDaysInMonth - daysPassed;
+  const monthProgress = (daysPassed / totalDaysInMonth) * 100;
 
   return (
     <GlassCard>
@@ -23,13 +35,13 @@ export const MonthlyOverviewCard: React.FC<MonthlyOverviewCardProps> = ({ monthl
           </div>
           <div>
             <h3 className="text-white font-semibold text-lg">Dieser Monat</h3>
-            <p className="text-white/60 text-sm">{currentMonth.month} 2025</p>
+            <p className="text-white/60 text-sm">{currentMonth} 2025</p>
           </div>
         </div>
         <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full ${isPositive ? 'bg-green-500/10' : 'bg-red-500/10'}`}>
           {isPositive ? <TrendingUp className="w-4 h-4 text-green-400" /> : <TrendingDown className="w-4 h-4 text-red-400" />}
           <span className={`text-sm font-medium ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
-            {isPositive ? '+' : ''}€{balanceChange.toLocaleString('de-AT')}
+            {isPositive ? '+' : ''}{formatCurrency(monthlyData.balance, displayCurrency.value)}
           </span>
         </div>
       </div>
@@ -37,29 +49,29 @@ export const MonthlyOverviewCard: React.FC<MonthlyOverviewCardProps> = ({ monthl
       <div className="grid grid-cols-3 gap-4 mb-6">
         <div className="text-center">
           <p className="text-white/60 text-sm mb-1">Einkommen</p>
-          <p className="text-green-400 font-bold text-lg">€{currentMonth.income.toLocaleString('de-AT')}</p>
+          <p className="text-green-400 font-bold text-lg">{formatCurrency(monthlyData.income, displayCurrency.value)}</p>
         </div>
         <div className="text-center">
           <p className="text-white/60 text-sm mb-1">Ausgaben</p>
-          <p className="text-red-400 font-bold text-lg">€{currentMonth.expenses.toLocaleString('de-AT')}</p>
+          <p className="text-red-400 font-bold text-lg">{formatCurrency(monthlyData.expenses, displayCurrency.value)}</p>
         </div>
         <div className="text-center">
-          <p className="text-white/60 text-sm mb-1">Saldo</p>
-          <p className="text-turquoise-400 font-bold text-lg">€{currentMonth.balance.toLocaleString('de-AT')}</p>
+          <p className="text-white/60 text-sm mb-1">Überschuss</p>
+          <p className="text-turquoise-400 font-bold text-lg">{formatCurrency(monthlyData.balance, displayCurrency.value)}</p>
         </div>
       </div>
 
       <div className="space-y-2">
         <div className="flex justify-between text-sm">
-          <span className="text-white/60">Fortschritt</span>
+          <span className="text-white/60">Monatsfortschritt</span>
           <span className="text-turquoise-400 font-medium">
-            {Math.round((currentMonth.balance / currentMonth.income) * 100)}% gespart
+            noch {daysRemaining} Tage
           </span>
         </div>
         <div className="w-full bg-white/10 rounded-full h-2">
           <div 
             className="bg-gradient-to-r from-turquoise-500 to-turquoise-400 h-2 rounded-full transition-all duration-500"
-            style={{ width: `${Math.min((currentMonth.balance / currentMonth.income) * 100, 100)}%` }}
+            style={{ width: `${Math.min(monthProgress, 100)}%` }}
           />
         </div>
       </div>

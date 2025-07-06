@@ -2,12 +2,15 @@ import React from 'react';
 import { AlertCircle, Clock } from 'lucide-react';
 import { GlassCard } from '../common/GlassCard';
 import { Transaction } from '../../types';
+import { useCurrency } from '../../context/CurrencyContext';
+import { formatCurrency } from '../../utils/formatUtils';
 
 interface OverdueItemsCardProps {
   overdueTransactions: Transaction[];
 }
 
 export const OverdueItemsCard: React.FC<OverdueItemsCardProps> = ({ overdueTransactions }) => {
+  const { displayCurrency } = useCurrency();
   const totalOverdue = overdueTransactions.reduce((sum, t) => sum + Math.abs(t.amount), 0);
 
   return (
@@ -23,7 +26,7 @@ export const OverdueItemsCard: React.FC<OverdueItemsCardProps> = ({ overdueTrans
           </div>
         </div>
         <div className="text-right">
-          <p className="text-red-400 font-bold text-xl">-€{totalOverdue.toLocaleString('de-AT')}</p>
+          <p className="text-red-400 font-bold text-xl">-{formatCurrency(totalOverdue, displayCurrency.value)}</p>
           <p className="text-white/60 text-sm">Gesamt</p>
         </div>
       </div>
@@ -39,7 +42,7 @@ export const OverdueItemsCard: React.FC<OverdueItemsCardProps> = ({ overdueTrans
               </div>
             </div>
             <div className="text-right">
-              <p className="text-red-400 font-semibold">€{Math.abs(transaction.amount).toLocaleString('de-AT')}</p>
+              <p className="text-red-400 font-semibold">{formatCurrency(Math.abs(transaction.amount), displayCurrency.value)}</p>
               <p className="text-white/60 text-xs">{new Date(transaction.date).toLocaleDateString('de-AT')}</p>
             </div>
           </div>

@@ -1,0 +1,376 @@
+{
+  "navigation": {
+    "home": "Home",
+    "planning": "Planung",
+    "budgets": "Budgets",
+    "projects": "Projekte",
+    "settings": "Einstellungen"
+  },
+  "dashboard": {
+    "title": "Hallo {name}! 👋",
+    "subtitle": {
+      "overall": "Hier ist eure finanzielle Übersicht",
+      "house": "Hier ist unser Haushalt",
+      "personal": "Deine finanzielle Übersicht",
+      "member": "Das ist {name}s Übersicht"
+    },
+    "today": "Heute",
+    "thisMonth": "Diesen Monat",
+    "plannedExpenses": "Geplante Ausgaben",
+    "surplus": "Überschuss",
+    "savingGoals": "Sparziele",
+    "active": "aktiv",
+    "overdue": "Überfällig",
+    "total": "Gesamt",
+    "income": "Einkommen",
+    "expenses": "Ausgaben",
+    "balance": "Überschuss",
+    "monthProgress": "Monatsfortschritt",
+    "daysRemaining": "noch {days} Tage"
+  },
+  "planning": {
+    "title": "Planung",
+    "subtitle": {
+      "overall": "Deine zentrale Arbeitsfläche für Familienfinanzen",
+      "house": "Haushalts-Planung und gemeinsame Finanzen",
+      "personal": "Deine persönliche Finanzplanung",
+      "member": "{name}s Finanzplanung"
+    },
+    "quickAdd": "Schnell hinzufügen:",
+    "addIncome": "+ Einkommen",
+    "addExpense": "+ Ausgabe",
+    "addRecurring": "+ Wiederkehrend",
+    "columns": {
+      "backlog": "Backlog (Überfällig)",
+      "thisMonth": "Diesen Monat",
+      "nextMonth": "Nächstes Monat",
+      "thisYear": "Dieses Jahr",
+      "someday": "Irgendwann",
+      "completed": "Erledigt"
+    },
+    "addTransaction": "Transaktion hinzufügen",
+    "noItems": "Keine Posten",
+    "net": "Netto:",
+    "completed": "Erledigt",
+    "undo": "Rückgängig",
+    "overdue": "Überfällig",
+    "budgetAllocation": "Budget-Zuteilung",
+    "editBudgetHint": "💡 Klicke hier, um das Budget zu bearbeiten",
+    "searchResults": "{count} Ergebnisse",
+    "searchFor": "Suche nach:",
+    "noSearchResults": "Keine passenden Transaktionen gefunden",
+    "tryDifferentSearch": "Versuche einen anderen Suchbegriff"
+  },
+  "budgets": {
+    "title": "Budgets",
+    "subtitle": {
+      "overall": "Alle Familien-Budgets verwalten",
+      "house": "Gemeinsame Haushalts-Budgets",
+      "personal": "Deine persönlichen Budgettöpfe",
+      "member": "{name}s Budgettöpfe"
+    },
+    "totalBudget": "Gesamt Budget",
+    "spent": "Ausgegeben",
+    "available": "Verfügbar",
+    "exceeded": "Überschritten",
+    "quickCreate": "Schnell erstellen:",
+    "groceries": "+ Lebensmittel",
+    "personal": "+ Privat",
+    "transport": "+ Transport",
+    "entertainment": "+ Entertainment",
+    "noBudgets": {
+      "overall": "Noch keine Budgets",
+      "house": "Keine Haushalts-Budgets",
+      "member": "Keine Budgets für {name}"
+    },
+    "createFirst": {
+      "overall": "Erstelle das erste Budget um Ausgaben zu verfolgen",
+      "house": "Erstelle das erste Haushalts-Budget für gemeinsame Ausgaben",
+      "member": "Erstelle das erste Budget für {name}"
+    },
+    "createButton": {
+      "overall": "Erstes Budget erstellen",
+      "house": "Haushalts-Budget erstellen",
+      "member": "Budget für {name} erstellen"
+    },
+    "used": "verwendet",
+    "remaining": "verbleibend",
+    "addExpenseHint": "💡 Klicke hier, um eine Ausgabe hinzuzufügen"
+  },
+  "projects": {
+    "title": "Finanzprojekte",
+    "subtitle": {
+      "overall": "Alle Familien-Sparziele verwalten",
+      "house": "Gemeinsame Haushalts-Sparziele",
+      "personal": "Deine persönlichen Sparziele",
+      "member": "{name}s Sparziele"
+    },
+    "overview": "Gesamtübersicht",
+    "totalProgress": "Gesamtfortschritt",
+    "thisWeek": "+12% diese Woche",
+    "transferMoney": "Überschuss zu Sparziel hinzufügen",
+    "transferDescription": "Hast du Geld übrig? Stecke es in deine Sparziele! 🎯",
+    "transferButton": "Geld übertragen",
+    "noProjects": {
+      "active": "Keine aktiven Sparziele",
+      "completed": "Keine abgeschlossenen Sparziele",
+      "all": "Noch keine Sparziele"
+    },
+    "createFirst": "Erstelle dein erstes Sparziel und beginne zu sparen!",
+    "createButton": "Erstes Sparziel erstellen",
+    "progress": "Fortschritt",
+    "missing": "fehlen noch",
+    "participants": "Teilnehmer",
+    "days": "Tage",
+    "overdue": "Überfällig",
+    "nextMilestone": "Nächster Meilenstein:",
+    "history": "Verlauf ({count} Einträge)",
+    "editHint": "💡 Klicke hier, um das Sparziel zu bearbeiten",
+    "status": {
+      "active": "Aktiv",
+      "paused": "Pausiert",
+      "completed": "Abgeschlossen"
+    },
+    "filter": {
+      "active": "Aktive Ziele",
+      "completed": "Abgeschlossen",
+      "all": "Alle"
+    },
+    "quickAdd": "Schnell hinzufügen:",
+    "categories": {
+      "travel": "+ Reisen",
+      "housing": "+ Wohnen",
+      "investments": "+ Investitionen",
+      "emergency": "+ Notgroschen"
+    }
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "subtitle": "App und Profil verwalten",
+    "totalWealth": "Gesamtvermögen",
+    "premiumMember": "Premium Mitglied",
+    "groups": {
+      "profile": "Profil",
+      "family": "Familie",
+      "app": "App",
+      "privacy": "Datenschutz & Sicherheit",
+      "support": "Support"
+    },
+    "items": {
+      "personalData": "Persönliche Daten",
+      "notifications": "Benachrichtigungen",
+      "manageFamily": "Familie verwalten",
+      "defaultView": "Standard-Ansicht",
+      "design": "Design",
+      "language": "Sprache",
+      "currency": "Währung",
+      "help": "Hilfe & Support",
+      "accountSecurity": "Kontosicherheit",
+      "dataManagement": "Datenverwaltung",
+      "appSecurity": "App-Sicherheit"
+    },
+    "values": {
+      "demoUser": "Demo Benutzer",
+      "enabled": "Aktiviert",
+      "inviteMembers": "Mitglieder einladen",
+      "ourHousehold": "Unser Haushalt",
+      "dark": "Dunkel",
+      "secure": "Sicher",
+      "protected": "Geschützt",
+      "configured": "Konfiguriert"
+    },
+    "appInfo": "FinanzApp v1.0.0",
+    "madeWith": "Made with ❤️ in Austria",
+    "privacy": {
+      "accountSecurity": {
+        "title": "Kontosicherheit",
+        "subtitle": "Passwort und Authentifizierung verwalten",
+        "changePassword": "Passwort ändern",
+        "twoFactorAuth": "Zwei-Faktor-Authentifizierung",
+        "activeSessions": "Aktive Sitzungen",
+        "loginActivity": "Anmeldeaktivität",
+        "lastPasswordChange": "Letztes Passwort geändert: {date}",
+        "twoFactorEnabled": "2FA ist aktiviert",
+        "twoFactorDisabled": "2FA ist deaktiviert",
+        "activeSessions_count": "{count} aktive Sitzungen",
+        "lastLogin": "Letzte Anmeldung: {date}"
+      },
+      "dataManagement": {
+        "title": "Datenverwaltung",
+        "subtitle": "Deine Daten exportieren und verwalten",
+        "exportData": "Daten exportieren",
+        "deleteAccount": "Konto löschen",
+        "privacyPolicy": "Datenschutzrichtlinie",
+        "termsOfService": "Nutzungsbedingungen",
+        "exportDescription": "Lade alle deine Finanzdaten herunter",
+        "deleteDescription": "Konto und alle Daten permanent löschen",
+        "lastExport": "Letzter Export: {date}",
+        "noExports": "Noch keine Exporte erstellt"
+      },
+      "appSecurity": {
+        "title": "App-Sicherheit",
+        "subtitle": "Sicherheitseinstellungen für die App",
+        "appLock": "App-Sperre",
+        "securityNotifications": "Sicherheitsbenachrichtigungen",
+        "biometricAuth": "Biometrische Authentifizierung",
+        "autoLock": "Automatische Sperre",
+        "appLockEnabled": "App-Sperre ist aktiviert",
+        "appLockDisabled": "App-Sperre ist deaktiviert",
+        "notificationsEnabled": "Benachrichtigungen aktiviert",
+        "notificationsDisabled": "Benachrichtigungen deaktiviert"
+      }
+    },
+    "notifications": {
+      "title": "Benachrichtigungen",
+      "subtitle": "Verwalte deine Benachrichtigungseinstellungen",
+      "categories": {
+        "financial": "Finanzielle Benachrichtigungen",
+        "family": "Familien-Benachrichtigungen",
+        "system": "System-Benachrichtigungen"
+      },
+      "delivery": {
+        "push": "Push-Benachrichtigungen",
+        "email": "E-Mail-Benachrichtigungen",
+        "sound": "Ton aktiviert",
+        "vibration": "Vibration aktiviert"
+      },
+      "types": {
+        "budgetExceeded": "Budget überschritten",
+        "budgetWarning": "Budget-Warnung",
+        "goalMilestone": "Sparziel-Meilensteine",
+        "monthlySummary": "Monatliche Zusammenfassung",
+        "transactionReminders": "Transaktions-Erinnerungen",
+        "familyActivity": "Familienaktivitäten",
+        "memberInvites": "Mitglieder-Einladungen",
+        "sharedGoals": "Gemeinsame Sparziele",
+        "appUpdates": "App-Updates",
+        "securityAlerts": "Sicherheitswarnungen"
+      },
+      "quickActions": {
+        "enableAll": "Alle aktivieren",
+        "disableAll": "Alle deaktivieren",
+        "onlyImportant": "Nur wichtige"
+      }
+    }
+  },
+  "forms": {
+    "transaction": {
+      "title": {
+        "new": "Neue Transaktion",
+        "edit": "Bearbeiten"
+      },
+      "expense": "Ausgabe",
+      "income": "Einkommen",
+      "title_field": "Titel",
+      "amount": "Betrag",
+      "category": "Kategorie",
+      "date": "Datum",
+      "assignedTo": "Zugewiesen an",
+      "recurrence": "Wiederholung",
+      "planning": "Planung",
+      "planned": "Geplant",
+      "someday": "Irgendwann",
+      "description": "Beschreibung (optional)",
+      "tags": "Tags",
+      "save": "Transaktion speichern",
+      "saveChanges": "Änderungen speichern",
+      "delete": "Transaktion löschen",
+      "deleteConfirm": "Möchtest du diese Transaktion wirklich löschen?",
+      "cancel": "Abbrechen",
+      "yes": "Ja, löschen"
+    },
+    "budget": {
+      "title": {
+        "new": "Neues Budget",
+        "edit": "Budget bearbeiten"
+      },
+      "name": "Budget Name",
+      "category": "Kategorie",
+      "budgetAmount": "Budget Betrag",
+      "alreadySpent": "Bereits ausgegeben",
+      "startDate": "Startdatum",
+      "endDate": "Enddatum",
+      "recurrence": "Wiederholung",
+      "assignedTo": "Zugewiesen an",
+      "color": "Farbe",
+      "description": "Beschreibung (optional)",
+      "save": "Budget erstellen",
+      "saveChanges": "Änderungen speichern",
+      "delete": "Budget löschen",
+      "deleteConfirm": "Möchtest du dieses Budget wirklich löschen?",
+      "householdHint": "💡 Haushalts-Budgets sind für gemeinsame Ausgaben wie Lebensmittel, Miete, etc."
+    },
+    "project": {
+      "title": {
+        "new": "Neues Sparziel",
+        "edit": "Sparziel bearbeiten"
+      },
+      "name": "Sparziel Name",
+      "description": "Beschreibung",
+      "targetAmount": "Zielbetrag",
+      "alreadySaved": "Bereits gespart",
+      "progress": "Fortschritt",
+      "saved": "gespart",
+      "missing": "fehlen noch",
+      "targetDate": "Zieldatum",
+      "category": "Kategorie",
+      "status": "Status",
+      "save": "Sparziel erstellen",
+      "saveChanges": "Änderungen speichern",
+      "delete": "Sparziel löschen",
+      "deleteConfirm": "Möchtest du dieses Sparziel wirklich löschen?"
+    },
+    "personalData": {
+      "title": "Persönliche Daten",
+      "subtitle": "Bearbeite deine Profil-Informationen",
+      "nameField": "Vollständiger Name",
+      "emailField": "E-Mail-Adresse",
+      "avatarField": "Profilbild",
+      "changeAvatar": "Profilbild ändern",
+      "avatarHint": "Klicke auf das Kamera-Symbol um dein Profilbild zu ändern",
+      "emailHint": "E-Mail-Adresse kann nur über die Kontosicherheit geändert werden",
+      "accountInfo": "Konto-Informationen",
+      "accountType": "Konto-Typ",
+      "memberSince": "Mitglied seit",
+      "lastLogin": "Letzte Anmeldung",
+      "saveButton": "Änderungen speichern",
+      "unsavedChanges": "Du hast ungespeicherte Änderungen"
+    }
+  },
+  "common": {
+    "close": "Schließen",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "add": "Hinzufügen",
+    "search": "Suchen...",
+    "loading": "Laden...",
+    "error": "Fehler",
+    "success": "Erfolgreich",
+    "confirm": "Bestätigen",
+    "back": "Zurück",
+    "next": "Weiter",
+    "previous": "Zurück",
+    "total": "Gesamt",
+    "of": "von",
+    "and": "und",
+    "or": "oder",
+    "yes": "Ja",
+    "no": "Nein",
+    "enable": "Aktivieren",
+    "disable": "Deaktivieren",
+    "configure": "Konfigurieren",
+    "view": "Anzeigen",
+    "download": "Herunterladen"
+  },
+  "placeholders": {
+    "amount": "z.B. 250",
+    "email": "deine@email.at",
+    "name": "z.B. Max Mustermann",
+    "description": "Beschreibung eingeben...",
+    "title": "Titel eingeben...",
+    "tag": "Tag hinzufügen...",
+    "search": "Suchen..."
+  }
+}
