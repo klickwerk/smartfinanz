@@ -1,0 +1,227 @@
+import React from 'react';
+import { Calendar, Plus, TrendingUp, TrendingDown } from 'lucide-react';
+import { GlassCard } from '../common/GlassCard';
+import { Transaction } from '../../types';
+
+interface FinancialBoardProps {
+  transactions: Transaction[];
+  onEditTransaction: (transaction: Transaction) => void;
+  onMarkCompleted: (transactionId: string) => void;
+  onAddTransaction: () => void;
+}
+
+export const FinancialBoard: React.FC<FinancialBoardProps> = ({
+  transactions,
+  onEditTransaction,
+  onMarkCompleted,
+  onAddTransaction
+}) => {
+  // Filter transactions by status/timeframe
+  const backlogTransactions = transactions.filter(t => t.status === 'overdue');
+  const somedayTransactions = transactions.filter(t => t.status === 'someday');
+  
+  const thisMonthTransactions = transactions.filter(t => {
+    const transactionDate = new Date(t.date);
+    const now = new Date();
+    return transactionDate.getMonth() === now.getMonth() && 
+           transactionDate.getFullYear() === now.getFullYear() &&
+           t.status !== 'overdue' && t.status !== 'someday';
+  });
+  
+  const thisYearTransactions = transactions.filter(t => {
+    const transactionDate = new Date(t.date);
+    const now = new Date();
+    return transactionDate.getFullYear() === now.getFullYear() &&
+           transactionDate.getMonth() !== now.getMonth() &&
+           t.status !== 'overdue' && t.status !== 'someday';
+  });
+
+  // Calculate column summaries
+  const calculateColumnSummary = (transactions: Transaction[]) => {
+    const income = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
+    const expenses = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + Math.abs(t.amount), 0);
+    return { income, expenses, net: income - expenses };
+  };
+
+  const backlogSummary = calculateColumnSummary(backlogTransactions);
+  const somedaySummary = calculateColumnSummary(somedayTransactions);
+  const thisMonthSummary = calculateColumnSummary(thisMonthTransactions);
+  const thisYearSummary = calculateColumnSummary(thisYearTransactions);
+
+  const renderTransactionCard = (transaction: Transaction) => (
+    <GlassCard 
+      key={transaction.id}
+      className={`mb-3 cursor-pointer hover:scale-[1.02] transition-all duration-200 ${
+        transaction.status === 'overdue' ? 'border-red-500/30 bg-red-500/5' : ''
+      } ${
+        transaction.status === 'completed' ? 'opacity-60' : ''
+      }`}
+      onClick={() => onEditTransaction(transaction)}
+    >
+      <div className="space-y-3">
+        {/* Header with title and amount */}
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <h4 className={`text-white font-semibold text-sm ${
+              transaction.status === 'completed' ? 'line-through' : ''
+            }`}>
+              {transaction.title}
+            </h4>
+            <p className="text-white/60 text-xs mt-1">{transaction.category}</p>
+          </div>
+          <div className="text-right">
+            <p className={`font-bold text-sm ${
+              transaction.type === 'income' ? 'text-green-400' : 'text-red-400'
+            }`}>
+              {transaction.type === 'income' ? '+' : ''}€{Math.abs(transaction.amount).toLocaleString('de-AT')}
+            </p>
+          </div>
+        </div>
+
+        {/* Date and status */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Calendar className="w-3 h-3 text-white/40" />
+            <span className="text-white/60 text-xs">
+              {new Date(transaction.date).toLocaleDateString('de-AT')}
+            </span>
+            {transaction.status === 'overdue' && (
+              <span className="bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full text-xs font-medium">
+                Überfällig
+              </span>
+            )}
+          </div>
+          
+          {transaction.status !== 'completed' && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onMarkCompleted(transaction.id);
+              }}
+              className="bg-turquoise-500/20 hover:bg-turquoise-500/30 text-turquoise-400 px-2 py-1 rounded-md text-xs transition-colors"
+            >
+              Erledigt
+            </button>
+          )}
+        </div>
+
+        {/* Description if available */}
+        {transaction.description && (
+          <p className="text-white/50 text-xs">{transaction.description}</p>
+        )}
+      </div>
+    </GlassCard>
+  );
+
+  const renderColumn = (
+    title: string,
+    transactions: Transaction[],
+    summary: { income: number; expenses: number; net: number },
+    icon: React.ReactNode,
+    accentColor: string
+  ) => (
+    <div className="flex-1 min-w-0">
+      <div className="bg-zinc-800/30 backdrop-blur-md rounded-2xl p-4 h-full">
+        {/* Column header */}
+        <div className="flex items-center gap-3 mb-4">
+          <div className={`p-2 rounded-xl ${accentColor}`}>
+            {icon}
+          </div>
+          <div className="flex-1">
+            <h2 className="text-white font-bold text-lg">{title}</h2>
+            <p className="text-white/60 text-sm">{transactions.length} Posten</p>
+          </div>
+        </div>
+
+        {/* Column summary */}
+        <div className="bg-white/5 rounded-xl p-3 mb-4">
+          <div className="grid grid-cols-2 gap-2 text-xs">
+            <div>
+              <p className="text-green-400 font-medium">+€{summary.income.toLocaleString('de-AT')}</p>
+              <p className="text-white/60">Einkommen</p>
+            </div>
+            <div>
+              <p className="text-red-400 font-medium">-€{summary.expenses.toLocaleString('de-AT')}</p>
+              <p className="text-white/60">Ausgaben</p>
+            </div>
+          </div>
+          <div className="border-t border-white/10 mt-2 pt-2">
+            <p className={`font-bold text-sm ${summary.net >= 0 ? 'text-turquoise-400' : 'text-red-400'}`}>
+              Netto: {summary.net >= 0 ? '+' : ''}€{summary.net.toLocaleString('de-AT')}
+            </p>
+          </div>
+        </div>
+
+        {/* Transaction cards */}
+        <div className="space-y-2 max-h-96 overflow-y-auto">
+          {transactions.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-white/40 text-sm">Keine Posten</p>
+              <button
+                onClick={onAddTransaction}
+                className="mt-2 text-turquoise-400 hover:text-turquoise-300 text-sm transition-colors"
+              >
+                Ersten Posten hinzufügen
+              </button>
+            </div>
+          ) : (
+            transactions.map(renderTransactionCard)
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="space-y-6 pb-24">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-white mb-2">Finanz-Board</h1>
+          <p className="text-white/60">Verwalte deine Finanzen wie To-Dos</p>
+        </div>
+        <button
+          onClick={onAddTransaction}
+          className="bg-gradient-to-r from-turquoise-500 to-turquoise-400 text-white p-3 rounded-xl hover:from-turquoise-600 hover:to-turquoise-500 transition-all duration-200 active:scale-95"
+        >
+          <Plus className="w-6 h-6" />
+        </button>
+      </div>
+
+      {/* Board columns */}
+      <div className="flex gap-4 overflow-x-auto pb-4">
+        {renderColumn(
+          'Backlog (Überfällig)',
+          backlogTransactions,
+          backlogSummary,
+          <TrendingDown className="w-5 h-5 text-red-400" />,
+          'bg-red-500/10'
+        )}
+        
+        {renderColumn(
+          'Irgendwann',
+          somedayTransactions,
+          somedaySummary,
+          <Calendar className="w-5 h-5 text-purple-400" />,
+          'bg-purple-500/10'
+        )}
+        
+        {renderColumn(
+          'Diesen Monat',
+          thisMonthTransactions,
+          thisMonthSummary,
+          <TrendingUp className="w-5 h-5 text-turquoise-400" />,
+          'bg-turquoise-500/10'
+        )}
+        
+        {renderColumn(
+          'Dieses Jahr',
+          thisYearTransactions,
+          thisYearSummary,
+          <Calendar className="w-5 h-5 text-blue-400" />,
+          'bg-blue-500/10'
+        )}
+      </div>
+    </div>
+  );
+};
