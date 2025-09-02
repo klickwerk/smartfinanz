@@ -11,6 +11,7 @@ import { DataManagementModal } from './DataManagementModal';
 import { AppSecurityModal } from './AppSecurityModal';
 import { NotificationsModal } from './NotificationsModal';
 import { PersonalDataModal } from './PersonalDataModal';
+import { CreateFamilyModal } from './CreateFamilyModal';
 import { useCurrency } from '../../context/CurrencyContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -34,12 +35,13 @@ export const Settings: React.FC = () => {
   const [isAppSecurityModalOpen, setIsAppSecurityModalOpen] = useState(false);
   const [isNotificationsModalOpen, setIsNotificationsModalOpen] = useState(false);
   const [isPersonalDataModalOpen, setIsPersonalDataModalOpen] = useState(false);
+  const [isCreateFamilyModalOpen, setIsCreateFamilyModalOpen] = useState(false);
   
   const { displayCurrency } = useCurrency();
   const { currentLanguage } = useLanguage();
   const { activeTheme } = useTheme();
   const { defaultView } = useDefaultView();
-  const { currentUser, isAdmin, updateUserName } = usePermissions();
+  const { currentUser, isAdmin, updateUserName, userFamilyId } = usePermissions();
   const { user, signOut } = useAuth();
   const { t } = useTranslation();
 
@@ -96,10 +98,17 @@ export const Settings: React.FC = () => {
     {
       title: t('settings.groups.family'),
       items: [
+        // Show "Create Family" option only if user is not in a family
+        ...(userFamilyId ? [] : [{
+          icon: Users,
+          label: 'Familie erstellen',
+          value: 'Neue Familie gründen',
+          action: () => setIsCreateFamilyModalOpen(true)
+        }]),
         { 
           icon: Users, 
           label: t('settings.items.manageFamily'), 
-          value: t('settings.values.inviteMembers'), 
+          value: userFamilyId ? t('settings.values.inviteMembers') : 'Keine Familie', 
           action: () => setIsFamilyManagementModalOpen(true)
         },
         { 
@@ -307,6 +316,11 @@ export const Settings: React.FC = () => {
       <NotificationsModal
         isOpen={isNotificationsModalOpen}
         onClose={() => setIsNotificationsModalOpen(false)}
+      />
+
+      <CreateFamilyModal
+        isOpen={isCreateFamilyModalOpen}
+        onClose={() => setIsCreateFamilyModalOpen(false)}
       />
     </div>
   );

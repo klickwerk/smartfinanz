@@ -5,6 +5,7 @@ import { getPermissionsForRole, hasPermission } from '../constants/permissions';
 import { getColorForMember, getInitials, getNameFromEmail } from '../utils/memberUtils';
 import { useAuth } from './AuthContext';
 import { supabase } from '../lib/supabaseClient';
+import { familyService, CreateFamilyResult } from '../services/FamilyService';
 
 interface PermissionsContextType {
   currentUser: {
@@ -21,6 +22,7 @@ interface PermissionsContextType {
   updateUserName: (userId: string, newName: string) => void;
   removeFamilyMember: (memberId: string, familyId: string) => Promise<boolean>;
   inviteFamilyMemberByEmail: (email: string, role: UserRole, name?: string) => Promise<{success: boolean; error?: string}>;
+  createFamily: (familyName: string) => Promise<CreateFamilyResult>;
   getMemberById: (id: string) => FamilyMember | undefined;
   hasPermission: (resource: Permission['resource'], action: Permission['action']) => boolean;
   canEdit: (itemCreatedBy?: string, itemAssignedTo?: string) => boolean;
@@ -59,6 +61,21 @@ export const PermissionsProvider: React.FC<PermissionsProviderProps> = ({ childr
   // State for loading status
   const [isLoading, setIsLoading] = useState(true);
 
+  // Function to re-fetch family data after changes
+  const refetchFamilyData = async () => {
+    if (!user) return;
+    
+    setIsLoading(true);
+    try {
+      // Re-run the family data fetching logic
+      await fetchFamilyDataInternal();
+    } catch (error) {
+      console.error('Error refetching family data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Save family members data to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem('finanzapp-family-members', JSON.stringify(familyMembersData));
@@ -66,7 +83,7 @@ export const PermissionsProvider: React.FC<PermissionsProviderProps> = ({ childr
 
   // Fetch real family members data when user changes
   useEffect(() => {
-    const fetchFamilyData = async () => {
+    const fetchFamilyDataInternal = async () => {
       if (!user || isLoading) {
         setIsLoading(false);
         return;
@@ -201,8 +218,29 @@ export const PermissionsProvider: React.FC<PermissionsProviderProps> = ({ childr
       }
     };
 
-    fetchFamilyData();
+    fetchFamilyDataInternal();
   }, [user]);
+
+  // Create family function
+  const createFamily = async (familyName: string): Promise<CreateFamilyResult> => {
+    if (!user) {
+      return { success: false, error: 'Sie müssen angemeldet sein, um eine Familie zu erstellen.' };
+    }
+
+    try {
+      const result = await familyService.createFamily(familyName, user.id);
+      
+      if (result.success) {
+        // Refresh family data to reflect the new family
+        await refetchFamilyData();
+      }
+      
+      return result;
+    } catch (error: any) {
+      console.error('Error in createFamily:', error);
+      return { success: false, error: error.message || 'Ein unbekannter Fehler ist aufgetreten.' };
+    }
+  };
 
   // Helper function to get member by ID from current data
   const getMemberById = (id: string): FamilyMember | undefined => {
@@ -421,6 +459,7 @@ export const PermissionsProvider: React.FC<PermissionsProviderProps> = ({ childr
     updateUserName,
     removeFamilyMember,
     inviteFamilyMemberByEmail,
+    createFamily,
     getMemberById,
     hasPermission: checkPermission,
     canEdit,
