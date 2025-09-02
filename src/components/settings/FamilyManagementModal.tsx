@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Shield, Users, Crown, Eye, Edit, Trash2, Plus, ChevronDown, AlertOctagon, Mail, UserPlus, CheckCircle, AlertTriangle } from 'lucide-react';
+import { X, Shield, Users, Crown, Eye, Edit, Trash2, Plus, ChevronDown, AlertOctagon, Mail, UserPlus, CheckCircle, AlertTriangle, Home, Settings } from 'lucide-react';
 import { ROLE_DISPLAY_INFO } from '../../constants/permissions';
 import { usePermissions } from '../../context/PermissionsContext';
 import { getInitials } from '../../utils/memberUtils';
@@ -14,8 +14,10 @@ export const FamilyManagementModal: React.FC<FamilyManagementModalProps> = ({
   isOpen,
   onClose
 }) => {
-  const { currentUser, isAdmin, familyMembersData, updateMemberRole, removeFamilyMember, userFamilyId, inviteFamilyMemberByEmail } = usePermissions();
+  const { currentUser, isAdmin, familyMembersData, updateMemberRole, removeFamilyMember, userFamilyId, inviteFamilyMemberByEmail, createFamily } = usePermissions();
   const [showInviteForm, setShowInviteForm] = useState(false);
+  const [showCreateFamilyForm, setShowCreateFamilyForm] = useState(false);
+  const [newFamilyName, setNewFamilyName] = useState('');
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteName, setInviteName] = useState('');
   const [selectedRole, setSelectedRole] = useState<UserRole>('member');
@@ -24,6 +26,10 @@ export const FamilyManagementModal: React.FC<FamilyManagementModalProps> = ({
   const [memberToConfirmRemoval, setMemberToConfirmRemoval] = useState<any>(null);
   const [inviteStatus, setInviteStatus] = useState<{success?: boolean; message?: string}>({});
   const [isInviting, setIsInviting] = useState(false);
+
+  // Create family states
+  const [isCreatingFamily, setIsCreatingFamily] = useState(false);
+  const [createFamilyStatus, setCreateFamilyStatus] = useState<{success?: boolean; message?: string}>({});
 
   if (!isOpen) return null;
 
@@ -40,6 +46,44 @@ export const FamilyManagementModal: React.FC<FamilyManagementModalProps> = ({
         return <Users className="w-4 h-4" />;
       case 'viewer':
         return <Eye className="w-4 h-4" />;
+    }
+  };
+
+  const handleCreateFamily = async () => {
+    if (!newFamilyName.trim()) return;
+    
+    setIsCreatingFamily(true);
+    setCreateFamilyStatus({});
+    
+    try {
+      const result = await createFamily(newFamilyName.trim());
+      
+      if (result.success) {
+        setCreateFamilyStatus({
+          success: true,
+          message: 'Familie erfolgreich erstellt!'
+        });
+        
+        // Reset form after successful creation
+        setTimeout(() => {
+          setNewFamilyName('');
+          setShowCreateFamilyForm(false);
+          setCreateFamilyStatus({});
+        }, 2000);
+      } else {
+        setCreateFamilyStatus({
+          success: false,
+          message: result.error || 'Fehler beim Erstellen der Familie.'
+        });
+      }
+    } catch (error) {
+      setCreateFamilyStatus({
+        success: false,
+        message: 'Ein unerwarteter Fehler ist aufgetreten.'
+      });
+      console.error('Error creating family:', error);
+    } finally {
+      setIsCreatingFamily(false);
     }
   };
 
@@ -126,82 +170,185 @@ export const FamilyManagementModal: React.FC<FamilyManagementModalProps> = ({
           </button>
         </div>
 
-        {/* Current Members */}
-        <div className="mb-8">
-          <h3 className="text-lg font-semibold text-white mb-4">Familienmitglieder</h3>
-          <div className="space-y-3 max-h-[50vh] overflow-y-auto pr-1">
-            {familyMembers.map((member) => (
-              <div key={member.id} className="bg-white/5 rounded-xl p-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className={`w-12 h-12 bg-gradient-to-br ${member.color} rounded-xl flex items-center justify-center text-white text-sm font-bold`}>
-                    {member.avatar}
+        {/* Create Family Section - Show only if user has no family */}
+        {!userFamilyId && (
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-white">Familie erstellen</h3>
+              {!showCreateFamilyForm && (
+                <button
+                  onClick={() => setShowCreateFamilyForm(true)}
+                  className="flex items-center gap-2 bg-turquoise-500/20 hover:bg-turquoise-500/30 text-turquoise-400 px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+                >
+                  <Home className="w-4 h-4" />
+                  <span>Familie gründen</span>
+                </button>
+              )}
+            </div>
+
+            {showCreateFamilyForm && (
+              <div className="bg-white/5 rounded-xl p-4 space-y-4">
+                {/* Status Message */}
+                {createFamilyStatus.message && (
+                  <div className={`p-3 rounded-xl ${
+                    createFamilyStatus.success 
+                      ? 'bg-green-500/10 border border-green-500/20' 
+                      : 'bg-red-500/10 border border-red-500/20'
+                  }`}>
+                    <div className="flex items-center gap-2">
+                      {createFamilyStatus.success ? (
+                        <CheckCircle className="w-5 h-5 text-green-400" />
+                      ) : (
+                        <AlertTriangle className="w-5 h-5 text-red-400" />
+                      )}
+                      <p className={`text-sm ${createFamilyStatus.success ? 'text-green-400' : 'text-red-400'}`}>
+                        {createFamilyStatus.message}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-white font-medium">{member.name}</p>
-                    <div className={`flex items-center gap-1 px-2 py-0.5 mt-1 rounded-full text-xs font-medium ${ROLE_DISPLAY_INFO[member.userRole].badge}`}>
-                      {getRoleIcon(member.userRole)}
-                      <span>{ROLE_DISPLAY_INFO[member.userRole].name}</span>
+                )}
+
+                <div>
+                  <label className="block text-white/80 text-sm font-medium mb-2">
+                    Familienname
+                  </label>
+                  <div className="relative">
+                    <Home className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-white/40" />
+                    <input
+                      type="text"
+                      value={newFamilyName}
+                      onChange={(e) => setNewFamilyName(e.target.value)}
+                      placeholder="z.B. Familie Mustermann"
+                      className="w-full bg-white/10 border border-white/20 rounded-xl pl-10 pr-4 py-3 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-turquoise-500/50 focus:border-transparent"
+                      maxLength={50}
+                      disabled={isCreatingFamily}
+                    />
+                  </div>
+                </div>
+
+                <div className="bg-turquoise-500/10 border border-turquoise-500/20 rounded-xl p-4">
+                  <div className="flex items-start gap-3">
+                    <Users className="w-5 h-5 text-turquoise-400 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <h4 className="text-turquoise-400 font-medium mb-1">Du wirst Administrator</h4>
+                      <p className="text-turquoise-300/80 text-sm">
+                        Als Ersteller erhältst du automatisch Administrator-Rechte und kannst andere Mitglieder einladen.
+                      </p>
                     </div>
                   </div>
                 </div>
 
-                {isAdmin && member.id !== currentUser.id && (
-                  <div className="flex items-center gap-2">
-                    {/* Role Change Dropdown */}
-                    <div className="relative">
-                      <button
-                        onClick={() => setShowRoleDropdown(showRoleDropdown === member.id ? null : member.id)}
-                        className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-                      >
-                        <Edit className="w-4 h-4 text-white/60" />
-                      </button>
-
-                      {showRoleDropdown === member.id && (
-                        <div className="absolute right-0 top-full mt-2 bg-zinc-800 border border-white/10 rounded-xl p-2 min-w-[150px] z-10">
-                          {(['member', 'viewer'] as UserRole[]).map((role) => (
-                            <button
-                              key={role}
-                              onClick={() => handleRoleChange(member.id, role)}
-                              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                                member.userRole === role
-                                  ? 'bg-blue-500/20 text-blue-400'
-                                  : 'hover:bg-white/10 text-white/80'
-                              }`}
-                            >
-                              <div className="flex items-center gap-2">
-                                {getRoleIcon(role)}
-                                <span>{ROLE_DISPLAY_INFO[role].name}</span>
-                              </div>
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Remove Member */}
-                    <button
-                      onClick={() => handleRemoveMember(member)}
-                      className="p-2 hover:bg-red-500/10 rounded-lg transition-colors group"
-                    >
-                      <Trash2 className="w-4 h-4 text-white/60 group-hover:text-red-400" />
-                    </button>
-                  </div>
-                )}
+                <div className="flex gap-3 pt-2">
+                  <button
+                    onClick={() => {
+                      setShowCreateFamilyForm(false);
+                      setNewFamilyName('');
+                      setCreateFamilyStatus({});
+                    }}
+                    disabled={isCreatingFamily}
+                    className="flex-1 bg-white/5 hover:bg-white/10 text-white font-semibold py-3 rounded-xl transition-all duration-200 disabled:opacity-50"
+                  >
+                    Abbrechen
+                  </button>
+                  <button
+                    onClick={handleCreateFamily}
+                    disabled={!newFamilyName.trim() || isCreatingFamily || createFamilyStatus.success}
+                    className="flex-1 bg-gradient-to-r from-turquoise-500 to-turquoise-400 text-white font-semibold py-3 rounded-xl hover:from-turquoise-600 hover:to-turquoise-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
+                  >
+                    {isCreatingFamily ? 'Wird erstellt...' : createFamilyStatus.success ? 'Familie erstellt!' : 'Familie erstellen'}
+                  </button>
+                </div>
               </div>
-            ))}
+            )}
 
-            {familyMembers.length === 0 && (
-              <div className="bg-white/5 rounded-xl p-8 text-center">
-                <Users className="w-12 h-12 text-white/40 mx-auto mb-3" />
-                <p className="text-white/60">Keine Familienmitglieder gefunden</p>
-                <p className="text-white/40 text-sm mt-1">Lade Familienmitglieder ein, um zu beginnen.</p>
+            {!userFamilyId && !showCreateFamilyForm && (
+              <div className="bg-white/5 rounded-xl p-6 text-center">
+                <Home className="w-12 h-12 text-white/40 mx-auto mb-3" />
+                <p className="text-white/60 mb-2">Du bist noch nicht Teil einer Familie</p>
+                <p className="text-white/40 text-sm">Erstelle eine Familie, um gemeinsame Finanzen zu verwalten.</p>
               </div>
             )}
           </div>
-        </div>
+        )}
+
+        {/* Current Members */}
+        {userFamilyId && (
+          <div className="mb-8">
+            <h3 className="text-lg font-semibold text-white mb-4">Familienmitglieder</h3>
+            <div className="space-y-3 max-h-[50vh] overflow-y-auto pr-1">
+              {familyMembers.map((member) => (
+                <div key={member.id} className="bg-white/5 rounded-xl p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-12 h-12 bg-gradient-to-br ${member.color} rounded-xl flex items-center justify-center text-white text-sm font-bold`}>
+                      {member.avatar}
+                    </div>
+                    <div>
+                      <p className="text-white font-medium">{member.name}</p>
+                      <div className={`flex items-center gap-1 px-2 py-0.5 mt-1 rounded-full text-xs font-medium ${ROLE_DISPLAY_INFO[member.userRole].badge}`}>
+                        {getRoleIcon(member.userRole)}
+                        <span>{ROLE_DISPLAY_INFO[member.userRole].name}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {isAdmin && member.id !== currentUser.id && (
+                    <div className="flex items-center gap-2">
+                      {/* Role Change Dropdown */}
+                      <div className="relative">
+                        <button
+                          onClick={() => setShowRoleDropdown(showRoleDropdown === member.id ? null : member.id)}
+                          className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                        >
+                          <Edit className="w-4 h-4 text-white/60" />
+                        </button>
+
+                        {showRoleDropdown === member.id && (
+                          <div className="absolute right-0 top-full mt-2 bg-zinc-800 border border-white/10 rounded-xl p-2 min-w-[150px] z-10">
+                            {(['member', 'viewer'] as UserRole[]).map((role) => (
+                              <button
+                                key={role}
+                                onClick={() => handleRoleChange(member.id, role)}
+                                className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                                  member.userRole === role
+                                    ? 'bg-blue-500/20 text-blue-400'
+                                    : 'hover:bg-white/10 text-white/80'
+                                }`}
+                              >
+                                <div className="flex items-center gap-2">
+                                  {getRoleIcon(role)}
+                                  <span>{ROLE_DISPLAY_INFO[role].name}</span>
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Remove Member */}
+                      <button
+                        onClick={() => handleRemoveMember(member)}
+                        className="p-2 hover:bg-red-500/10 rounded-lg transition-colors group"
+                      >
+                        <Trash2 className="w-4 h-4 text-white/60 group-hover:text-red-400" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))}
+
+              {familyMembers.length === 0 && (
+                <div className="bg-white/5 rounded-xl p-8 text-center">
+                  <Users className="w-12 h-12 text-white/40 mx-auto mb-3" />
+                  <p className="text-white/60">Keine Familienmitglieder gefunden</p>
+                  <p className="text-white/40 text-sm mt-1">Lade Familienmitglieder ein, um zu beginnen.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Invite New Member */}
-        {isAdmin && (
+        {isAdmin && userFamilyId && (
           <div className="mb-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-white">Neues Mitglied einladen</h3>
@@ -330,23 +477,25 @@ export const FamilyManagementModal: React.FC<FamilyManagementModalProps> = ({
         )}
 
         {/* Permissions Info */}
-        <div className="bg-white/5 rounded-xl p-4">
-          <h4 className="text-white font-medium mb-3">Berechtigungen</h4>
-          <div className="space-y-2 text-sm">
-            <div className="flex items-center gap-2 text-white/60">
-              <Crown className="w-4 h-4 text-yellow-400" />
-              <span><strong>Administrator:</strong> Vollzugriff auf alle Funktionen</span>
-            </div>
-            <div className="flex items-center gap-2 text-white/60">
-              <Users className="w-4 h-4 text-green-400" />
-              <span><strong>Mitglied:</strong> Kann eigene Daten einsehen und bearbeiten</span>
-            </div>
-            <div className="flex items-center gap-2 text-white/60">
-              <Eye className="w-4 h-4 text-gray-400" />
-              <span><strong>Betrachter:</strong> Kann nur Daten einsehen, keine Änderungen vornehmen</span>
+        {userFamilyId && (
+          <div className="bg-white/5 rounded-xl p-4">
+            <h4 className="text-white font-medium mb-3">Berechtigungen</h4>
+            <div className="space-y-2 text-sm">
+              <div className="flex items-center gap-2 text-white/60">
+                <Crown className="w-4 h-4 text-yellow-400" />
+                <span><strong>Administrator:</strong> Vollzugriff auf alle Funktionen</span>
+              </div>
+              <div className="flex items-center gap-2 text-white/60">
+                <Users className="w-4 h-4 text-green-400" />
+                <span><strong>Mitglied:</strong> Kann eigene Daten einsehen und bearbeiten</span>
+              </div>
+              <div className="flex items-center gap-2 text-white/60">
+                <Eye className="w-4 h-4 text-gray-400" />
+                <span><strong>Betrachter:</strong> Kann nur Daten einsehen, keine Änderungen vornehmen</span>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Remove Member Confirmation Dialog */}
