@@ -13,6 +13,7 @@ import { FAMILY_MEMBERS, getMemberNameById } from './constants/familyMembers';
 import { useTheme } from './context/ThemeContext';
 import { useDefaultView } from './context/DefaultViewContext';
 import { useAuth } from './context/AuthContext';
+import { usePermissions } from './context/PermissionsContext';
 import { useTransactions } from './hooks/useTransactions';
 import { useBudgets } from './hooks/useBudgets';
 import { useProjects } from './hooks/useProjects';
@@ -27,6 +28,9 @@ interface TransactionPreset {
 function App() {
   // Authentication state
   const { user, loading: authLoading } = useAuth();
+  
+  // Get user's family context
+  const { userFamilyId } = usePermissions();
 
   // Initialize activeTab with default view from context
   const { defaultView } = useDefaultView();
@@ -230,6 +234,7 @@ function App() {
             onDelete={handleDeleteTransaction}
             editTransaction={editingTransaction}
             preset={transactionPreset}
+            userFamilyId={userFamilyId}
           />
         )}
 

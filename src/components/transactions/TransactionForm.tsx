@@ -6,6 +6,7 @@ import { CATEGORIES, RECURRENCE_OPTIONS } from '../../constants/options';
 import { useCurrency } from '../../context/CurrencyContext';
 import { validateTransactionForm } from '../../utils/transactionValidation';
 import { usePermissions } from '../../context/PermissionsContext';
+import { useAuth } from '../../context/AuthContext';
 
 interface TransactionPreset {
   type?: 'income' | 'expense';
@@ -18,6 +19,7 @@ interface TransactionFormProps {
   onDelete?: (transactionId: string) => void;
   editTransaction?: Transaction;
   preset?: TransactionPreset;
+  userFamilyId?: string | null;
 }
 
 export const TransactionForm: React.FC<TransactionFormProps> = ({ 
@@ -25,10 +27,12 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
   onSubmit, 
   onDelete,
   editTransaction,
-  preset
+  preset,
+  userFamilyId
 }) => {
   const { displayCurrency } = useCurrency();
   const { familyMembersData } = usePermissions();
+  const { user } = useAuth();
   
   const [formData, setFormData] = useState({
     title: editTransaction?.title || '',
@@ -72,6 +76,8 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
     const transaction: Omit<Transaction, 'id'> = {
       ...formData,
       amount: formData.type === 'expense' ? -Math.abs(Number(formData.amount)) : Math.abs(Number(formData.amount)),
+      created_by: user?.id || '',
+      family_id: userFamilyId || null,
     };
 
     onSubmit(transaction);
