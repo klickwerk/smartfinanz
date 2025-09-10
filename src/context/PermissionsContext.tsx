@@ -61,36 +61,25 @@ export const PermissionsProvider: React.FC<PermissionsProviderProps> = ({ childr
   // State for loading status
   const [isLoading, setIsLoading] = useState(true);
 
-  // Function to re-fetch family data after changes
-  const refetchFamilyData = async () => {
-    if (!user) return;
-    
-    setIsLoading(true);
-    try {
-      // Re-run the family data fetching logic
-      await fetchFamilyDataInternal();
-    } catch (error) {
-      console.error('Error refetching family data:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   // Save family members data to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem('finanzapp-family-members', JSON.stringify(familyMembersData));
   }, [familyMembersData]);
 
-  // Fetch real family members data when user changes
-  useEffect(() => {
-    const fetchFamilyDataInternal = async () => {
+  // Function to fetch family data
+  const _fetchFamilyData = async () => {
+    if (!user) {
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
+    try {
       if (!user || isLoading) {
         setIsLoading(false);
         return;
       }
 
-      setIsLoading(true);
-      try {
         // First, get the user's profile to get their name
         const { data: profileData, error: profileError } = await supabase
           .from('profiles') 
@@ -211,14 +200,27 @@ export const PermissionsProvider: React.FC<PermissionsProviderProps> = ({ childr
           
           setFamilyMembersData([...systemEntries, currentUserMember]);
         }
-      } catch (error) {
-        console.error('Error fetching family data:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    } catch (error) {
+      console.error('Error fetching family data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    fetchFamilyDataInternal();
+  // Function to re-fetch family data after changes
+  const refetchFamilyData = async () => {
+    if (!user) return;
+    
+    try {
+      await _fetchFamilyData();
+    } catch (error) {
+      console.error('Error refetching family data:', error);
+    }
+  };
+
+  // Fetch real family members data when user changes
+  useEffect(() => {
+    _fetchFamilyData();
   }, [user]);
 
   // Create family function
