@@ -94,8 +94,8 @@ export const PermissionsProvider: React.FC<PermissionsProviderProps> = ({ childr
         // First, get the user's profile to get their name
         const { data: profileData, error: profileError } = await supabase
           .from('profiles') 
-          .select('id, user_id, full_name, avatar_url')
-          .eq('user_id', user.id) 
+          .select('id, full_name, avatar_url')
+          .eq('id', user.id) 
           .single(); 
 
         if (profileError && profileError.code !== 'PGRST116') {
@@ -151,8 +151,8 @@ export const PermissionsProvider: React.FC<PermissionsProviderProps> = ({ childr
             const memberIds = familyMembersData.map(m => m.user_id);
             const { data: profilesData, error: profilesError } = await supabase
               .from('profiles')
-              .select('id, user_id, full_name, avatar_url')
-              .in('user_id', memberIds);
+              .select('id, full_name, avatar_url')
+              .in('id', memberIds);
               
             if (profilesError) {
               console.error('Error fetching member profiles:', profilesError);
@@ -171,7 +171,7 @@ export const PermissionsProvider: React.FC<PermissionsProviderProps> = ({ childr
             // Map the real family members
             const realFamilyMembers = familyMembersData.map((member, index) => {
               // Find the profile for this member
-              const profile = memberProfiles.find(p => p.user_id === member.user_id);
+              const profile = memberProfiles.find(p => p.id === member.user_id);
               const name = profile?.full_name || `Mitglied ${index + 1}`;
               const initials = name.split(' ').map(n => n.charAt(0)).join('').toUpperCase().slice(0, 2);
 

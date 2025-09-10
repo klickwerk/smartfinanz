@@ -68,8 +68,8 @@ export const useFamilyMemberships = () => {
               const memberIds = familyMembersData.map(m => m.user_id);
               const { data: profilesData, error: profilesError } = await supabase
                 .from('profiles')
-                .select('id, user_id, full_name, avatar_url, email')
-                .in('user_id', memberIds);
+                .select('id, full_name, avatar_url, email')
+                .in('id', memberIds);
                 
               if (profilesError) {
                 console.error('Error fetching member profiles:', profilesError);
@@ -77,7 +77,7 @@ export const useFamilyMemberships = () => {
               
               // Add profiles to memberships
               const membershipsWithProfiles = familyMembersData.map(member => {
-                const profile = profilesData?.find(p => p.user_id === member.user_id);
+                const profile = profilesData?.find(p => p.id === member.user_id);
                 return {
                   ...member,
                   profile
