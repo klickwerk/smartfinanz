@@ -10,6 +10,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<{ error: AuthError | null }>;
   resetPassword: (email: string) => Promise<{ error: AuthError | null }>;
+  deleteAccount: () => Promise<{ error: string | null }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -120,6 +121,42 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const deleteAccount = async () => {
+    try {
+      if (!user) {
+        return { error: 'Kein Benutzer angemeldet' };
+      }
+
+      // Get the current session to get the access token
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        return { error: 'Keine gültige Sitzung gefunden' };
+      }
+
+      // Call the delete-account edge function
+      const { data, error } = await supabase.functions.invoke('delete-account', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (error) {
+        console.error('Error calling delete-account function:', error);
+        return { error: error.message || 'Fehler beim Löschen des Kontos' };
+      }
+
+      if (!data?.success) {
+        return { error: data?.error || 'Fehler beim Löschen des Kontos' };
+      }
+
+      // Account deletion was successful - user will be automatically logged out
+      return { error: null };
+    } catch (error) {
+      console.error('Error in deleteAccount:', error);
+      return { error: 'Ein unerwarteter Fehler ist aufgetreten' };
+    }
+  };
+
   const value: AuthContextType = {
     user,
     session,
@@ -128,6 +165,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     signIn,
     signOut,
     resetPassword,
+    deleteAccount,
   };
 
   return (

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Database, Download, Trash2, FileText, Shield, AlertTriangle, CheckCircle } from 'lucide-react';
 import { useTranslation } from '../../i18n';
+import { useAuth } from '../../context/AuthContext';
 
 interface DataManagementModalProps {
   isOpen: boolean;
@@ -12,10 +13,13 @@ export const DataManagementModal: React.FC<DataManagementModalProps> = ({
   onClose
 }) => {
   const { t } = useTranslation();
+  const { deleteAccount } = useAuth();
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [isExporting, setIsExporting] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   
   // Mock data - in real app this would come from API
   const [dataInfo, setDataInfo] = useState({
@@ -70,12 +74,25 @@ export const DataManagementModal: React.FC<DataManagementModalProps> = ({
     }, 2000);
   };
 
-  const handleDeleteAccount = () => {
+  const handleDeleteAccount = async () => {
     if (deleteConfirmText === 'LÖSCHEN') {
-      alert('Konto-Löschung ist noch nicht implementiert.');
-      setShowDeleteConfirmation(false);
-      setDeleteConfirmText('');
-      setActiveSection(null);
+      setIsDeletingAccount(true);
+      setDeleteError(null);
+      
+      try {
+        const { error } = await deleteAccount();
+        
+        if (error) {
+          setDeleteError(error);
+          setIsDeletingAccount(false);
+        } else {
+          // Account deletion successful - user will be automatically logged out
+          // No need to do anything else as the AuthContext will handle the logout
+        }
+      } catch (error) {
+        setDeleteError('Ein unerwarteter Fehler ist aufgetreten');
+        setIsDeletingAccount(false);
+      }
     }
   };
 
@@ -293,8 +310,32 @@ export const DataManagementModal: React.FC<DataManagementModalProps> = ({
                 <div className="bg-white/5 rounded-xl p-6">
                   <h3 className="text-white font-semibold text-lg mb-4">Konto löschen</h3>
                   
-                  {!showDeleteConfirmation ? (
+                  {isDeletingAccount ? (
+                    <div className="text-center py-8">
+                      <div className="animate-spin w-12 h-12 border-4 border-red-500/20 border-t-red-500 rounded-full mx-auto mb-4"></div>
+                      <p className="text-white font-medium mb-2">Konto wird gelöscht...</p>
+                      <p className="text-white/60 text-sm">Dies kann einen Moment dauern</p>
+                      <div className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl">
+                        <p className="text-red-400/80 text-xs">
+                          <strong>Wichtig:</strong> Schließe diese Seite nicht, bis der Vorgang abgeschlossen ist.
+                        </p>
+                      </div>
+                    </div>
+                  ) : !showDeleteConfirmation ? (
                     <div className="space-y-4">
+                      {/* Delete Error Message */}
+                      {deleteError && (
+                        <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4">
+                          <div className="flex items-start gap-3">
+                            <AlertTriangle className="w-5 h-5 text-red-400 mt-0.5 flex-shrink-0" />
+                            <div>
+                              <h4 className="text-red-400 font-medium mb-1">Fehler beim Löschen</h4>
+                              <p className="text-red-300/80 text-sm">{deleteError}</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
                       <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4">
                         <div className="flex items-start gap-3">
                           <AlertTriangle className="w-5 h-5 text-red-400 mt-0.5 flex-shrink-0" />
@@ -350,7 +391,21 @@ export const DataManagementModal: React.FC<DataManagementModalProps> = ({
                           onChange={(e) => setDeleteConfirmText(e.target.value)}
                           className="w-full bg-white/5 border border-red-500/30 rounded-xl px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-red-500"
                           placeholder="LÖSCHEN eingeben"
+                          disabled={isDeletingAccount}
                         />
+                      </div>
+
+                      <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4">
+                        <div className="flex items-start gap-3">
+                          <AlertTriangle className="w-5 h-5 text-yellow-400 mt-0.5 flex-shrink-0" />
+                          <div>
+                            <h4 className="text-yellow-400 font-medium mb-1">Letzte Warnung</h4>
+                            <p className="text-yellow-300/80 text-sm">
+                              Diese Aktion löscht dein Konto und ALLE deine Daten permanent. 
+                              Stelle sicher, dass du deine Daten exportiert hast, falls du sie behalten möchtest.
+                            </p>
+                          </div>
+                        </div>
                       </div>
 
                       <div className="flex gap-3">
@@ -358,21 +413,30 @@ export const DataManagementModal: React.FC<DataManagementModalProps> = ({
                           onClick={() => {
                             setShowDeleteConfirmation(false);
                             setDeleteConfirmText('');
+                            setDeleteError(null);
                           }}
+                          disabled={isDeletingAccount}
                           className="flex-1 bg-white/5 hover:bg-white/10 text-white font-semibold py-3 rounded-xl transition-all duration-200"
                         >
                           Abbrechen
                         </button>
                         <button
                           onClick={handleDeleteAccount}
-                          disabled={deleteConfirmText !== 'LÖSCHEN'}
-                          className={`flex-1 font-semibold py-3 rounded-xl transition-all duration-200 ${
-                            deleteConfirmText === 'LÖSCHEN'
+                          disabled={deleteConfirmText !== 'LÖSCHEN' || isDeletingAccount}
+                          className={`flex-1 font-semibold py-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 ${
+                            deleteConfirmText === 'LÖSCHEN' && !isDeletingAccount
                               ? 'bg-gradient-to-r from-red-500 to-red-400 text-white hover:from-red-600 hover:to-red-500'
                               : 'bg-gray-500/20 text-gray-400 cursor-not-allowed'
                           }`}
                         >
-                          Konto endgültig löschen
+                          {isDeletingAccount ? (
+                            <>
+                              <div className="animate-spin w-4 h-4 border-2 border-white/20 border-t-white rounded-full"></div>
+                              Wird gelöscht...
+                            </>
+                          ) : (
+                            'Konto endgültig löschen'
+                          )}
                         </button>
                       </div>
                     </div>
