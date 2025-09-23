@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, TrendingUp, TrendingDown } from 'lucide-react';
+import { Calendar, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { GlassCard } from '../common/GlassCard';
 import { MonthlyData } from '../../types';
 import { useCurrency } from '../../context/CurrencyContext';
@@ -7,9 +7,17 @@ import { formatCurrency } from '../../utils/formatUtils';
 
 interface NextMonthlyOverviewCardProps {
   nextMonthData: MonthlyData;
+  currentMonthData: {
+    income: number;
+    expenses: number;
+    balance: number;
+  };
 }
 
-export const NextMonthlyOverviewCard: React.FC<NextMonthlyOverviewCardProps> = ({ nextMonthData }) => {
+export const NextMonthlyOverviewCard: React.FC<NextMonthlyOverviewCardProps> = ({ 
+  nextMonthData, 
+  currentMonthData 
+}) => {
   const { displayCurrency } = useCurrency();
   const currentMonth = new Date().getMonth();
   const nextMonth = new Date(new Date().setMonth(currentMonth + 1));
@@ -19,6 +27,61 @@ export const NextMonthlyOverviewCard: React.FC<NextMonthlyOverviewCardProps> = (
   const plannedPercentage = nextMonthData.income > 0 
     ? Math.min(Math.round((nextMonthData.expenses / nextMonthData.income) * 100), 100)
     : 0;
+
+  // Calculate income change percentage compared to current month
+  const calculateIncomeChange = () => {
+    if (currentMonthData.income === 0) {
+      // If current month has no income but next month has income, it's a 100% increase
+      if (nextMonthData.income > 0) {
+        return { percentage: 100, isPositive: true, isSignificant: true };
+      }
+      // If both are zero, no change
+      return { percentage: 0, isPositive: true, isSignificant: false };
+    }
+    
+    const changeAmount = nextMonthData.income - currentMonthData.income;
+    const changePercentage = (changeAmount / currentMonthData.income) * 100;
+    
+    return {
+      percentage: Math.abs(Math.round(changePercentage)),
+      isPositive: changePercentage >= 0,
+      isSignificant: Math.abs(changePercentage) >= 1 // Only show if change is at least 1%
+    };
+  };
+
+  const incomeChange = calculateIncomeChange();
+
+  const getChangeText = () => {
+    if (!incomeChange.isSignificant) {
+      return 'ähnlich wie dieser Monat';
+    }
+    
+    if (incomeChange.isPositive) {
+      return `+${incomeChange.percentage}% mehr als dieser Monat`;
+    } else {
+      return `-${incomeChange.percentage}% weniger als dieser Monat`;
+    }
+  };
+
+  const getChangeIcon = () => {
+    if (!incomeChange.isSignificant) {
+      return <Minus className="w-4 h-4" />;
+    }
+    
+    return incomeChange.isPositive ? (
+      <TrendingUp className="w-4 h-4" />
+    ) : (
+      <TrendingDown className="w-4 h-4" />
+    );
+  };
+
+  const getChangeColor = () => {
+    if (!incomeChange.isSignificant) {
+      return 'text-blue-400';
+    }
+    
+    return incomeChange.isPositive ? 'text-green-400' : 'text-red-400';
+  };
 
   return (
     <GlassCard className="border-blue-500/20 bg-blue-500/5">
@@ -69,9 +132,9 @@ export const NextMonthlyOverviewCard: React.FC<NextMonthlyOverviewCardProps> = (
       </div>
 
       <div className="mt-4 pt-4 border-t border-white/10">
-        <div className="flex items-center gap-2 text-sm text-blue-400">
-          <TrendingUp className="w-4 h-4" />
-          <span>+15% mehr als dieser Monat geplant</span>
+        <div className={`flex items-center gap-2 text-sm ${getChangeColor()}`}>
+          {getChangeIcon()}
+          <span>{getChangeText()}</span>
         </div>
       </div>
     </GlassCard>

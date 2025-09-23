@@ -171,7 +171,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
         
         <div className={overdueTransactions.length > 0 ? "lg:col-span-2 xl:col-span-1" : "lg:col-span-1"}>
-          <NextMonthlyOverviewCard nextMonthData={nextMonthData} />
+          <NextMonthlyOverviewCard 
+            nextMonthData={nextMonthData} 
+            currentMonthData={currentMonthSummary}
+          />
         </div>
       </div>
 
