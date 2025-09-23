@@ -1,184 +1,276 @@
 import React, { useState } from 'react';
-import { Mail, Lock, Eye, EyeOff, User } from 'lucide-react';
+import { Mail, Lock, User, Eye, EyeOff, LogIn, UserPlus, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { GlassCard } from '../common/GlassCard';
+import { useTheme } from '../../context/ThemeContext';
+
+type AuthMode = 'login' | 'register' | 'forgot-password';
 
 export const AuthForm: React.FC = () => {
-  const [isLogin, setIsLogin] = useState(true);
+  const [mode, setMode] = useState<AuthMode>('login');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    confirmPassword: ''
-  });
-  const [error, setError] = useState('');
-  
-  const { signIn, signUp, loading } = useAuth();
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const { signIn, signUp, resetPassword } = useAuth();
+  const { activeTheme } = useTheme();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError(null);
+    setSuccess(null);
+    setIsLoading(true);
 
-    if (!formData.email || !formData.password) {
-      setError('Bitte fülle alle Felder aus');
-      return;
-    }
-
-    if (!isLogin && formData.password !== formData.confirmPassword) {
-      setError('Passwörter stimmen nicht überein');
-      return;
-    }
-
-    if (!isLogin && formData.password.length < 6) {
-      setError('Passwort muss mindestens 6 Zeichen haben');
-      return;
-    }
-
-    const { error: authError } = isLogin 
-      ? await signIn(formData.email, formData.password)
-      : await signUp(formData.email, formData.password);
-
-    if (authError) {
-      console.error('Auth error:', authError);
-      
-      // Deutsche Fehlermeldungen
-      switch (authError.message) {
-        case 'Invalid login credentials':
-          setError('Ungültige Login-Daten');
-          break;
-        case 'Email not confirmed':
-          setError('Bitte bestätige deine E-Mail-Adresse');
-          break;
-        case 'User already registered':
-          setError('E-Mail-Adresse bereits registriert');
-          break;
-        default:
-          setError(authError.message || 'Ein Fehler ist aufgetreten');
+    try {
+      if (mode === 'login') {
+        const { error } = await signIn(email, password);
+        if (error) {
+          setError(getErrorMessage(error.message));
+        }
+      } else if (mode === 'register') {
+        if (!fullName.trim()) {
+          setError('Vollständiger Name ist erforderlich');
+          return;
+        }
+        const { error } = await signUp(email, password, fullName);
+        if (error) {
+          setError(getErrorMessage(error.message));
+        } else {
+          setSuccess('Registrierung erfolgreich! Bitte überprüfe deine E-Mail für die Bestätigung.');
+        }
+      } else if (mode === 'forgot-password') {
+        const { error } = await resetPassword(email);
+        if (error) {
+          setError(getErrorMessage(error.message));
+        } else {
+          setSuccess('Passwort-Reset-Link wurde an deine E-Mail gesendet.');
+        }
       }
-    } else if (!isLogin) {
-      setError('');
-      // Erfolgreiche Registrierung
-      alert('Registrierung erfolgreich! Bitte überprüfe deine E-Mail für die Bestätigung.');
+    } catch (error) {
+      setError('Ein unerwarteter Fehler ist aufgetreten. Bitte versuche es erneut.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const inputClass = "w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 pl-12 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-turquoise-500 focus:border-transparent transition-all";
+  const getErrorMessage = (message: string): string => {
+    // Translate common Supabase error messages to German
+    const errorMap: Record<string, string> = {
+      'Invalid login credentials': 'Ungültige Anmeldedaten',
+      'Email not confirmed': 'E-Mail noch nicht bestätigt',
+      'User already registered': 'Benutzer bereits registriert',
+      'Password should be at least 6 characters': 'Passwort sollte mindestens 6 Zeichen haben',
+      'Invalid email': 'Ungültige E-Mail-Adresse',
+      'Email rate limit exceeded': 'E-Mail-Limit überschritten. Bitte warte einen Moment.',
+    };
+    
+    return errorMap[message] || message;
+  };
+
+  const getTitle = () => {
+    switch (mode) {
+      case 'login': return 'Willkommen zurück';
+      case 'register': return 'Konto erstellen';
+      case 'forgot-password': return 'Passwort zurücksetzen';
+    }
+  };
+
+  const getSubtitle = () => {
+    switch (mode) {
+      case 'login': return 'Melde dich in deinem FinanzApp-Konto an';
+      case 'register': return 'Erstelle dein neues FinanzApp-Konto';
+      case 'forgot-password': return 'Gib deine E-Mail-Adresse ein, um dein Passwort zurückzusetzen';
+    }
+  };
+
+  const getButtonText = () => {
+    if (isLoading) return 'Lädt...';
+    switch (mode) {
+      case 'login': return 'Anmelden';
+      case 'register': return 'Registrieren';
+      case 'forgot-password': return 'Reset-Link senden';
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-zinc-900 via-black to-zinc-900 flex items-center justify-center p-6">
-      <div className="w-full max-w-md">
-        {/* App Logo/Title */}
-        <div className="text-center mb-8">
-          <div className="w-20 h-20 bg-gradient-to-r from-turquoise-500 to-turquoise-400 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <span className="text-2xl font-bold text-white">€</span>
-          </div>
-          <h1 className="text-3xl font-bold text-white mb-2">FinanzApp</h1>
-          <p className="text-white/60">Intelligente Finanzplanung</p>
-        </div>
-
-        <GlassCard>
-          <div className="space-y-6">
-            {/* Tab Toggle */}
-            <div className="flex bg-white/5 rounded-2xl p-1">
-              <button
-                type="button"
-                onClick={() => {setIsLogin(true); setError('');}}
-                className={`flex-1 py-3 rounded-xl transition-all font-medium ${
-                  isLogin
-                    ? 'bg-turquoise-500/20 text-turquoise-400'
-                    : 'text-white/60 hover:text-white/80'
-                }`}
-              >
-                Anmelden
-              </button>
-              <button
-                type="button"
-                onClick={() => {setIsLogin(false); setError('');}}
-                className={`flex-1 py-3 rounded-xl transition-all font-medium ${
-                  !isLogin
-                    ? 'bg-turquoise-500/20 text-turquoise-400'
-                    : 'text-white/60 hover:text-white/80'
-                }`}
-              >
-                Registrieren
-              </button>
+    <div className="min-h-screen relative flex items-center justify-center p-4">
+      {/* Dynamic Background */}
+      <div 
+        className="fixed inset-0 bg-cover bg-center z-0 transition-all duration-500"
+        style={{
+          backgroundImage: `url(${activeTheme.backgroundImage})`,
+          backgroundAttachment: 'fixed'
+        }}
+      />
+      
+      {/* Dynamic Dark Overlay */}
+      <div className={`fixed inset-0 bg-gradient-to-b ${activeTheme.gradientFrom} ${activeTheme.gradientVia} ${activeTheme.gradientTo} z-10 transition-all duration-500`} />
+      
+      {/* Auth Form */}
+      <div className="relative z-20 w-full max-w-md">
+        <div className="bg-zinc-900/95 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 bg-gradient-to-br from-turquoise-500 to-turquoise-400 rounded-2xl flex items-center justify-center text-white text-2xl font-bold mx-auto mb-4">
+              FA
             </div>
+            <h1 className="text-2xl font-bold text-white mb-2">{getTitle()}</h1>
+            <p className="text-white/60 text-sm">{getSubtitle()}</p>
+          </div>
 
-            {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Email */}
-              <div className="relative">
-                <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-white/40" />
-                <input
-                  type="email"
-                  placeholder="E-Mail-Adresse"
-                  value={formData.email}
-                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                  className={inputClass}
-                  required
-                />
-              </div>
+          {/* Error/Success Messages */}
+          {error && (
+            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl">
+              <p className="text-red-400 text-sm text-center">{error}</p>
+            </div>
+          )}
 
-              {/* Password */}
-              <div className="relative">
-                <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-white/40" />
-                <input
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Passwort"
-                  value={formData.password}
-                  onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                  className={inputClass}
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white/40 hover:text-white/60 transition-colors"
-                >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                </button>
-              </div>
+          {success && (
+            <div className="mb-6 p-4 bg-green-500/10 border border-green-500/20 rounded-xl">
+              <p className="text-green-400 text-sm text-center">{success}</p>
+            </div>
+          )}
 
-              {/* Confirm Password for Signup */}
-              {!isLogin && (
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Full Name - Only for registration */}
+            {mode === 'register' && (
+              <div>
+                <label className="block text-white/80 text-sm font-medium mb-2">
+                  Vollständiger Name
+                </label>
                 <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-white/40" />
                   <input
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Passwort bestätigen"
-                    value={formData.confirmPassword}
-                    onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                    className={inputClass}
+                    type="text"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 pl-12 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-turquoise-500 focus:border-transparent"
+                    placeholder="Max Mustermann"
                     required
                   />
+                  <User className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-white/40" />
                 </div>
-              )}
+              </div>
+            )}
 
-              {/* Error Message */}
-              {error && (
-                <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3">
-                  <p className="text-red-400 text-sm">{error}</p>
-                </div>
-              )}
-
-              {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-gradient-to-r from-turquoise-500 to-turquoise-400 text-white font-semibold py-4 rounded-xl hover:from-turquoise-600 hover:to-turquoise-500 transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? 'Wird verarbeitet...' : isLogin ? 'Anmelden' : 'Registrieren'}
-              </button>
-            </form>
-
-            {/* Demo Account Info */}
-            <div className="bg-white/5 rounded-xl p-4">
-              <p className="text-white/60 text-sm mb-2">Demo-Account zum Testen:</p>
-              <p className="text-white/80 text-xs">E-Mail: demo@example.com</p>
-              <p className="text-white/80 text-xs">Passwort: demo123</p>
+            {/* Email */}
+            <div>
+              <label className="block text-white/80 text-sm font-medium mb-2">
+                E-Mail-Adresse
+              </label>
+              <div className="relative">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 pl-12 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-turquoise-500 focus:border-transparent"
+                  placeholder="deine@email.at"
+                  required
+                />
+                <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-white/40" />
+              </div>
             </div>
+
+            {/* Password - Not for forgot password */}
+            {mode !== 'forgot-password' && (
+              <div>
+                <label className="block text-white/80 text-sm font-medium mb-2">
+                  Passwort
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 pl-12 pr-12 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-turquoise-500 focus:border-transparent"
+                    placeholder="••••••••"
+                    required
+                    minLength={6}
+                  />
+                  <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-white/40" />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white/40 hover:text-white/60 transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full bg-gradient-to-r from-turquoise-500 to-turquoise-400 text-white font-semibold py-4 rounded-xl hover:from-turquoise-600 hover:to-turquoise-500 transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {mode === 'login' && <LogIn className="w-5 h-5" />}
+              {mode === 'register' && <UserPlus className="w-5 h-5" />}
+              {mode === 'forgot-password' && <Mail className="w-5 h-5" />}
+              {getButtonText()}
+            </button>
+          </form>
+
+          {/* Mode Switching */}
+          <div className="mt-8 space-y-4">
+            {mode === 'login' && (
+              <>
+                <div className="text-center">
+                  <button
+                    onClick={() => setMode('forgot-password')}
+                    className="text-turquoise-400 hover:text-turquoise-300 text-sm transition-colors"
+                  >
+                    Passwort vergessen?
+                  </button>
+                </div>
+                <div className="text-center">
+                  <span className="text-white/60 text-sm">Noch kein Konto? </span>
+                  <button
+                    onClick={() => setMode('register')}
+                    className="text-turquoise-400 hover:text-turquoise-300 text-sm font-medium transition-colors"
+                  >
+                    Jetzt registrieren
+                  </button>
+                </div>
+              </>
+            )}
+
+            {mode === 'register' && (
+              <div className="text-center">
+                <span className="text-white/60 text-sm">Bereits ein Konto? </span>
+                <button
+                  onClick={() => setMode('login')}
+                  className="text-turquoise-400 hover:text-turquoise-300 text-sm font-medium transition-colors"
+                >
+                  Jetzt anmelden
+                </button>
+              </div>
+            )}
+
+            {mode === 'forgot-password' && (
+              <div className="text-center">
+                <button
+                  onClick={() => setMode('login')}
+                  className="text-turquoise-400 hover:text-turquoise-300 text-sm font-medium transition-colors flex items-center justify-center gap-2 mx-auto"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  Zurück zur Anmeldung
+                </button>
+              </div>
+            )}
           </div>
-        </GlassCard>
+
+          {/* Demo Notice */}
+          <div className="mt-8 p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl">
+            <p className="text-blue-400 text-xs text-center">
+              <strong>Demo-Hinweis:</strong> Stelle sicher, dass deine Supabase-Konfiguration in der .env-Datei korrekt eingerichtet ist.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );
