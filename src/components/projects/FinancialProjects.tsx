@@ -117,6 +117,53 @@ export const FinancialProjects: React.FC<FinancialProjectsProps> = ({
   const totalTarget = filteredProjects.reduce((sum, project) => sum + project.targetAmount, 0);
   const overallProgress = totalTarget > 0 ? (totalSaved / totalTarget) * 100 : 0;
 
+  // Calculate weekly progress change
+  const weeklyProgressData = useMemo(() => {
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    sevenDaysAgo.setHours(0, 0, 0, 0);
+
+    let totalSavedLastWeek = 0;
+
+    // Calculate total saved amount from 7 days ago
+    filteredProjects.forEach(project => {
+      let projectAmountLastWeek = 0;
+      
+      // Go through project history and sum up amounts up to 7 days ago
+      project.history.forEach(entry => {
+        const entryDate = new Date(entry.date);
+        entryDate.setHours(0, 0, 0, 0);
+        
+        // Only include entries that happened before or on the date 7 days ago
+        if (entryDate <= sevenDaysAgo) {
+          if (entry.type === 'deposit') {
+            projectAmountLastWeek += entry.amount;
+          } else if (entry.type === 'withdrawal') {
+            projectAmountLastWeek -= entry.amount;
+          }
+          // Ignore milestone entries as they don't affect the amount
+        }
+      });
+      
+      totalSavedLastWeek += projectAmountLastWeek;
+    });
+
+    // Calculate percentage change
+    let weeklyChangePercentage = 0;
+    if (totalSavedLastWeek > 0) {
+      weeklyChangePercentage = ((totalSaved - totalSavedLastWeek) / totalSavedLastWeek) * 100;
+    } else if (totalSaved > 0) {
+      // If we had nothing last week but have something now, it's a 100% increase
+      weeklyChangePercentage = 100;
+    }
+
+    return {
+      totalSavedLastWeek,
+      weeklyChangePercentage,
+      weeklyChange: totalSaved - totalSavedLastWeek
+    };
+  }, [filteredProjects, totalSaved]);
+
   // Get current selected member (dynamisch)
   const selectedMember = availableMembers.find(member => member.id === selectedMemberId) || availableMembers[0];
   
@@ -364,7 +411,10 @@ export const FinancialProjects: React.FC<FinancialProjectsProps> = ({
 
         <div className="flex items-center gap-2 text-sm text-green-400">
           <TrendingUp className="w-4 h-4" />
-          <span>+12% diese Woche</span>
+          <span>
+            {weeklyProgressData.weeklyChangePercentage >= 0 ? '+' : ''}
+            {Math.round(weeklyProgressData.weeklyChangePercentage)}% diese Woche
+          </span>
         </div>
       </GlassCard>
 
