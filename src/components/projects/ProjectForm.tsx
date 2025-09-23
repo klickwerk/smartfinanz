@@ -10,13 +10,17 @@ interface ProjectFormProps {
   onSubmit: (project: Omit<FinancialProject, 'id'>) => void;
   onDelete?: (projectId: string) => void;
   editProject?: FinancialProject;
+  currentUserId?: string;
+  userFamilyId?: string;
 }
 
 export const ProjectForm: React.FC<ProjectFormProps> = ({ 
   onClose, 
   onSubmit, 
   onDelete,
-  editProject
+  editProject,
+  currentUserId,
+  userFamilyId
 }) => {
   const [formData, setFormData] = useState({
     title: editProject?.title || '',
@@ -39,10 +43,10 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
       targetAmount: Number(formData.targetAmount),
       currentAmount: Number(formData.currentAmount),
       participants: editProject?.participants || [
-        { id: '1', name: 'Max', avatar: 'MM', contribution: 0 }
+        { id: currentUserId || '', name: 'User', avatar: 'U', contribution: 0 }
       ],
-      familyId: 'family-1',
-      createdBy: 'user-1'
+      familyId: userFamilyId || null,
+      createdBy: currentUserId || ''
     };
 
     onSubmit(project);

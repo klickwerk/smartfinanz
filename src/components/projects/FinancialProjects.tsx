@@ -11,6 +11,7 @@ import { FamilyMemberSelector } from '../common/FamilyMemberSelector';
 // Neue Imports für dynamische Daten
 import { useAuth } from '../../context/AuthContext';
 import { useFamilyMemberships } from '../../hooks/useFamilyMemberships'; // Dein neuer Hook
+import { usePermissions } from '../../context/PermissionsContext';
 
 interface FinancialProjectsProps {
   projects: FinancialProject[];
@@ -35,6 +36,7 @@ export const FinancialProjects: React.FC<FinancialProjectsProps> = ({
 }) => {
   const { user } = useAuth(); // Aktueller Benutzer aus dem AuthContext
   const { familyMemberships, families } = useFamilyMemberships(); // Dynamische Familien- und Mitgliedsdaten
+  const { userFamilyId } = usePermissions();
 
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
   const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
@@ -479,6 +481,8 @@ export const FinancialProjects: React.FC<FinancialProjectsProps> = ({
           onSubmit={handleAddProject}
           onDelete={onDeleteProject}
           editProject={editingProject}
+          currentUserId={user?.id}
+          userFamilyId={userFamilyId}
         />
       )}
 
