@@ -8,6 +8,29 @@ const corsHeaders = {
 
 Deno.serve(async (req: Request) => {
   try {
+    // Check if required environment variables are available
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
+
+    if (!supabaseUrl || !supabaseServiceKey || !supabaseAnonKey) {
+      console.error('Missing required environment variables:', {
+        SUPABASE_URL: !!supabaseUrl,
+        SUPABASE_SERVICE_ROLE_KEY: !!supabaseServiceKey,
+        SUPABASE_ANON_KEY: !!supabaseAnonKey
+      });
+      return new Response(
+        JSON.stringify({ 
+          error: "Server configuration error", 
+          details: "Required environment variables are not configured" 
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
     if (req.method === "OPTIONS") {
       return new Response(null, {
         status: 200,
@@ -39,14 +62,14 @@ Deno.serve(async (req: Request) => {
 
     // Create Supabase client with service role key for admin operations
     const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      supabaseUrl,
+      supabaseServiceKey
     );
 
     // Create regular client to verify user
     const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? ''
+      supabaseUrl,
+      supabaseAnonKey
     );
 
     // Verify the user's JWT token
