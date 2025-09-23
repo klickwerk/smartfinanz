@@ -99,7 +99,7 @@ export const FamilyManagementModal: React.FC<FamilyManagementModalProps> = ({
       if (result.success) {
         setInviteStatus({
           success: true,
-          message: result.message || 'Einladung erfolgreich gesendet!'
+          message: 'Einladung erfolgreich gesendet!'
         });
         
         // Reset form after successful invitation
