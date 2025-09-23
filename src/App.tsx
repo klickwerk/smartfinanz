@@ -1,254 +1,276 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dashboard } from './components/dashboard/Dashboard';
-import { PlanningBoard } from './components/planung/PlanningBoard';
+import { FinancialBoard } from './components/board/FinancialBoard';
 import { FinancialProjects } from './components/projects/FinancialProjects';
-import { Budgets } from './components/budgets/Budgets';
+import { TransactionsList } from './components/transactions/TransactionsList';
 import { Settings } from './components/settings/Settings';
 import { TransactionForm } from './components/transactions/TransactionForm';
-import { BudgetForm } from './components/budgets/BudgetForm';
-import { BottomNavigation } from './components/navigation/BottomNavigation';
 import { AuthForm } from './components/auth/AuthForm';
-import { LoadingScreen } from './components/auth/LoadingScreen';
-import { FAMILY_MEMBERS, getMemberNameById } from './constants/familyMembers';
-import { useTheme } from './context/ThemeContext';
-import { useDefaultView } from './context/DefaultViewContext';
-import { useAuth } from './context/AuthContext';
-import { usePermissions } from './context/PermissionsContext';
-import { useTransactions } from './hooks/useTransactions';
-import { useBudgets } from './hooks/useBudgets';
-import { useProjects } from './hooks/useProjects';
-import { useModals } from './hooks/useModals';
-import { useModalScrollLock } from './hooks/useModalScrollLock';
+import { BottomNavigation } from './components/navigation/BottomNavigation';
+import { FloatingActionButton } from './components/navigation/FloatingActionButton';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { supabase } from './lib/supabase';
+import { Transaction } from './types';
 
-interface TransactionPreset {
-  type?: 'income' | 'expense';
-  recurrence?: 'none' | 'monthly' | 'quarterly' | 'yearly';
-}
+// Main App Content (wrapped in AuthProvider)
+const AppContent: React.FC = () => {
+  const { user, loading } = useAuth();
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | undefined>();
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [transactionsLoading, setTransactionsLoading] = useState(true);
 
-function App() {
-  // Authentication state
-  const { user, loading: authLoading } = useAuth();
-  
-  // Get user's family context
-  const { userFamilyId } = usePermissions();
-
-  // Initialize activeTab with default view from context
-  const { defaultView } = useDefaultView();
-  const [activeTab, setActiveTab] = useState(defaultView);
-  const [selectedMemberId, setSelectedMemberId] = useState<string>('overall');
-
-  // Get active theme from context
-  const { activeTheme } = useTheme();
-
-  // Use custom hooks for state management
-  const { budgets, handleAddBudget, handleEditBudget, handleDeleteBudget } = useBudgets();
-  
-  const { 
-    allTransactions, 
-    completedGeneratedIds, 
-    handleAddTransaction, 
-    handleEditTransaction, 
-    handleUpdateTransaction,
-    handleDeleteTransaction, 
-    handleMarkCompleted, 
-    handleUnmarkCompleted 
-  } = useTransactions(budgets);
-  
-  const { 
-    projects, 
-    handleAddProject, 
-    handleEditProject, 
-    handleDeleteProject, 
-    handleTransferToProject 
-  } = useProjects();
-
-  const {
-    isTransactionModalOpen,
-    editingTransaction,
-    transactionPreset,
-    handleOpenTransactionModal,
-    handleCloseTransactionModal,
-    isBudgetModalOpen,
-    editingBudget,
-    handleOpenBudgetModal,
-    handleCloseBudgetModal
-  } = useModals();
-
-  // Filter transactions based on selected family member - MOVED TO TOP LEVEL
-  const filteredTransactions = useMemo(() => {
-    if (selectedMemberId === 'overall') {
-      return allTransactions;
+  // Load transactions when user is logged in
+  useEffect(() => {
+    if (user) {
+      loadTransactions();
     }
+  }, [user]);
 
-    if (selectedMemberId === 'house') {
-      return allTransactions.filter(transaction => 
-        transaction.assignedTo === 'Haus'
+  const loadTransactions = async () => {
+    if (!user) return;
+    
+    setTransactionsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('transactions')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error loading transactions:', error);
+      } else {
+        // Transform database data to match our Transaction type
+        const transformedTransactions: Transaction[] = data?.map(t => ({
+          id: t.id,
+          title: t.title,
+          amount: t.amount,
+          category: t.category,
+          date: t.date || new Date().toISOString().split('T')[0],
+          type: t.type as 'income' | 'expense',
+          currency: t.currency as 'EUR' | 'USD' | 'CHF',
+          status: t.status as 'completed' | 'pending' | 'overdue' | 'someday',
+          description: t.description || undefined,
+          tags: t.tags || undefined
+        })) || [];
+        
+        setTransactions(transformedTransactions);
+      }
+    } catch (error) {
+      console.error('Error loading transactions:', error);
+    }
+    setTransactionsLoading(false);
+  };
+
+  const handleAddTransaction = async (newTransaction: Omit<Transaction, 'id'>) => {
+    if (!user) return;
+
+    try {
+      if (editingTransaction) {
+        // Update existing transaction
+        const { error } = await supabase
+          .from('transactions')
+          .update({
+            title: newTransaction.title,
+            amount: newTransaction.amount,
+            category: newTransaction.category,
+            date: newTransaction.date,
+            type: newTransaction.type,
+            currency: newTransaction.currency,
+            status: newTransaction.status,
+            description: newTransaction.description || null,
+            tags: newTransaction.tags || null,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', editingTransaction.id);
+
+        if (error) {
+          console.error('Error updating transaction:', error);
+          alert('Fehler beim Aktualisieren der Transaktion');
+          return;
+        }
+
+        // Update local state
+        setTransactions(prev => prev.map(t => 
+          t.id === editingTransaction.id 
+            ? { ...newTransaction, id: editingTransaction.id }
+            : t
+        ));
+        setEditingTransaction(undefined);
+      } else {
+        // Add new transaction
+        const { data, error } = await supabase
+          .from('transactions')
+          .insert({
+            title: newTransaction.title,
+            amount: newTransaction.amount,
+            category: newTransaction.category,
+            date: newTransaction.date,
+            type: newTransaction.type,
+            currency: newTransaction.currency,
+            status: newTransaction.status,
+            description: newTransaction.description || null,
+            tags: newTransaction.tags || null,
+            created_by: user.id,
+            // family_id: null // TODO: Add family support later
+          })
+          .select()
+          .single();
+
+        if (error) {
+          console.error('Error adding transaction:', error);
+          alert('Fehler beim Hinzufügen der Transaktion');
+          return;
+        }
+
+        // Transform and add to local state
+        if (data) {
+          const transformedTransaction: Transaction = {
+            id: data.id,
+            title: data.title,
+            amount: data.amount,
+            category: data.category,
+            date: data.date || new Date().toISOString().split('T')[0],
+            type: data.type as 'income' | 'expense',
+            currency: data.currency as 'EUR' | 'USD' | 'CHF',
+            status: data.status as 'completed' | 'pending' | 'overdue' | 'someday',
+            description: data.description || undefined,
+            tags: data.tags || undefined
+          };
+          
+          setTransactions(prev => [transformedTransaction, ...prev]);
+        }
+      }
+    } catch (error) {
+      console.error('Error in handleAddTransaction:', error);
+      alert('Ein unerwarteter Fehler ist aufgetreten');
+    }
+  };
+
+  const handleEditTransaction = (transaction: Transaction) => {
+    setEditingTransaction(transaction);
+    setIsTransactionModalOpen(true);
+  };
+
+  const handleMarkCompleted = async (transactionId: string) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('transactions')
+        .update({ 
+          status: 'completed',
+          completed_date: new Date().toISOString().split('T')[0],
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', transactionId);
+
+      if (error) {
+        console.error('Error marking transaction as completed:', error);
+        alert('Fehler beim Markieren der Transaktion');
+        return;
+      }
+
+      // Update local state
+      setTransactions(prev => prev.map(t => 
+        t.id === transactionId 
+          ? { ...t, status: 'completed' as const }
+          : t
+      ));
+    } catch (error) {
+      console.error('Error in handleMarkCompleted:', error);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsTransactionModalOpen(false);
+    setEditingTransaction(undefined);
+  };
+
+  const renderContent = () => {
+    if (transactionsLoading) {
+      return (
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-white text-center">
+            <div className="animate-spin w-8 h-8 border-4 border-turquoise-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+            <p>Lade Transaktionen...</p>
+          </div>
+        </div>
       );
     }
 
-    // Get the member name from the ID using the centralized function
-    const memberName = getMemberNameById(selectedMemberId);
-    if (!memberName) return allTransactions;
+    switch (activeTab) {
+      case 'dashboard':
+        return <Dashboard transactions={transactions} />;
+      case 'board':
+        return (
+          <FinancialBoard
+            transactions={transactions}
+            onEditTransaction={handleEditTransaction}
+            onMarkCompleted={handleMarkCompleted}
+            onAddTransaction={() => setIsTransactionModalOpen(true)}
+          />
+        );
+      case 'projects':
+        return <FinancialProjects />;
+      case 'transactions':
+        return <TransactionsList transactions={transactions} />;
+      case 'settings':
+        return <Settings />;
+      default:
+        return <Dashboard transactions={transactions} />;
+    }
+  };
 
-    return allTransactions.filter(transaction => 
-      transaction.assignedTo === memberName
+  // Show loading screen while checking auth
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-zinc-900 via-black to-zinc-900 flex items-center justify-center">
+        <div className="text-white text-center">
+          <div className="animate-spin w-8 h-8 border-4 border-turquoise-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p>Lade App...</p>
+        </div>
+      </div>
     );
-  }, [allTransactions, selectedMemberId]);
-
-  // Determine if any modal is open to lock scrolling
-  const isAnyModalOpen = isTransactionModalOpen || isBudgetModalOpen;
-  
-  // Use the scroll lock hook
-  useModalScrollLock(isAnyModalOpen);
-
-  // Show loading screen while authentication is being checked
-  if (authLoading) {
-    return <LoadingScreen />;
   }
 
-  // Show auth form if user is not authenticated
+  // Show auth form if not logged in
   if (!user) {
     return <AuthForm />;
   }
 
-  const handleTransactionSubmit = (newTransaction: Omit<Transaction, 'id'>) => {
-    if (editingTransaction) {
-      // Update existing transaction
-      handleUpdateTransaction(editingTransaction.id, newTransaction);
-    } else {
-      // Add new transaction
-      handleAddTransaction(newTransaction);
-    }
-  };
-
-  const handleBudgetSubmit = (newBudget: Omit<Budget, 'id'>) => {
-    if (editingBudget) {
-      // Update existing budget
-      handleEditBudget(editingBudget.id, newBudget);
-    } else {
-      // Add new budget
-      handleAddBudget(newBudget);
-    }
-  };
-
-  const handleEditTransactionClick = (transaction: Transaction) => {
-    const editableTransaction = handleEditTransaction(transaction);
-    if (editableTransaction) {
-      handleOpenTransactionModal(undefined, editableTransaction);
-    }
-  };
-
-  const renderContent = () => {
-    switch (activeTab) {
-      case 'dashboard':
-        return (
-          <Dashboard 
-            allTransactions={filteredTransactions} 
-            completedGeneratedIds={completedGeneratedIds}
-            selectedMemberId={selectedMemberId}
-            onMemberChange={setSelectedMemberId}
-            projects={projects}
-          />
-        );
-      case 'planung':
-        return (
-          <PlanningBoard
-            allTransactions={filteredTransactions}
-            completedGeneratedIds={completedGeneratedIds}
-            budgets={budgets}
-            onEditTransaction={handleEditTransactionClick}
-            onEditBudget={handleEditBudget}
-            onMarkCompleted={handleMarkCompleted}
-            onUnmarkCompleted={handleUnmarkCompleted}
-            onAddTransaction={handleOpenTransactionModal}
-            selectedMemberId={selectedMemberId}
-            onMemberChange={setSelectedMemberId}
-          />
-        );
-      case 'budgets':
-        return (
-          <Budgets 
-            budgets={budgets}
-            onAddBudget={handleAddBudget}
-            onEditBudget={handleEditBudget}
-            onDeleteBudget={handleDeleteBudget}
-            onOpenBudgetModal={handleOpenBudgetModal}
-          />
-        );
-      case 'projects':
-        return (
-          <FinancialProjects 
-            projects={projects}
-            onAddProject={handleAddProject}
-            onEditProject={handleEditProject}
-            onDeleteProject={handleDeleteProject}
-            onTransferToProject={handleTransferToProject}
-            selectedMemberId={selectedMemberId}
-            onMemberChange={setSelectedMemberId}
-          />
-        );
-      case 'settings':
-        return <Settings />;
-      default:
-        return (
-          <Dashboard 
-            allTransactions={filteredTransactions} 
-            completedGeneratedIds={completedGeneratedIds}
-            selectedMemberId={selectedMemberId}
-            onMemberChange={setSelectedMemberId}
-            projects={projects}
-          />
-        );
-    }
-  };
-
+  // Show main app if logged in
   return (
-    <div className="min-h-screen relative">
-      {/* Dynamic Parallax Background Image */}
-      <div 
-        className="fixed inset-0 bg-cover bg-center z-0 transition-all duration-500"
-        style={{
-          backgroundImage: `url(${activeTheme.backgroundImage})`,
-          backgroundAttachment: 'fixed'
-        }}
-      />
-      
-      {/* Dynamic Dark Overlay for Better Readability */}
-      <div className={`fixed inset-0 bg-gradient-to-b ${activeTheme.gradientFrom} ${activeTheme.gradientVia} ${activeTheme.gradientTo} z-10 transition-all duration-500`} />
-      
-      {/* Main Content */}
-      <div className="relative z-20">
-        <div className="container mx-auto px-6 py-8 max-w-7xl">
-          {renderContent()}
-        </div>
-
-        <BottomNavigation
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-        />
-
-        {isTransactionModalOpen && (
-          <TransactionForm
-            onClose={handleCloseTransactionModal}
-            onSubmit={handleTransactionSubmit}
-            onDelete={handleDeleteTransaction}
-            editTransaction={editingTransaction}
-            preset={transactionPreset}
-            userFamilyId={userFamilyId}
-          />
-        )}
-
-        {isBudgetModalOpen && (
-          <BudgetForm
-            onClose={handleCloseBudgetModal}
-            onSubmit={handleBudgetSubmit}
-            onDelete={handleDeleteBudget}
-            editBudget={editingBudget}
-            selectedMemberId={selectedMemberId}
-          />
-        )}
+    <div className="min-h-screen bg-gradient-to-b from-zinc-900 via-black to-zinc-900">
+      <div className="container mx-auto px-6 py-8 max-w-md">
+        {renderContent()}
       </div>
+
+      <FloatingActionButton onClick={() => setIsTransactionModalOpen(true)} />
+      
+      <BottomNavigation
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+      />
+
+      {isTransactionModalOpen && (
+        <TransactionForm
+          onClose={handleCloseModal}
+          onSubmit={handleAddTransaction}
+          editTransaction={editingTransaction}
+        />
+      )}
     </div>
+  );
+};
+
+// Main App Component with AuthProvider
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 
