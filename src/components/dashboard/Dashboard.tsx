@@ -3,7 +3,6 @@ import { OverdueItemsCard } from './OverdueItemsCard';
 import { MonthlyOverviewCard } from './MonthlyOverviewCard';
 import { YearlyProjectionCard } from './YearlyProjectionCard';
 import { Transaction } from '../../types';
-import { yearlyData } from '../../data/mockData'; // Keep mock yearly data for now
 
 interface DashboardProps {
   transactions: Transaction[];
@@ -36,6 +35,38 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions }) => {
     income: currentMonthIncome,
     expenses: currentMonthExpenses,
     balance: currentMonthIncome - currentMonthExpenses
+  };
+
+  // Calculate yearly projection from real data
+  const currentYearTransactions = transactions.filter(t => {
+    const transactionDate = new Date(t.date);
+    return transactionDate.getFullYear() === currentYear;
+  });
+
+  // Group by quarters
+  const quarters = {
+    q1: 0, q2: 0, q3: 0, q4: 0
+  };
+
+  currentYearTransactions.forEach(transaction => {
+    if (transaction.status !== 'completed') return;
+    
+    const month = new Date(transaction.date).getMonth();
+    const quarter = Math.floor(month / 3);
+    const amount = transaction.type === 'income' ? transaction.amount : 0; // Only count income for projection
+    
+    switch (quarter) {
+      case 0: quarters.q1 += amount; break;
+      case 1: quarters.q2 += amount; break;
+      case 2: quarters.q3 += amount; break;
+      case 3: quarters.q4 += amount; break;
+    }
+  });
+
+  const yearlyData = {
+    year: currentYear,
+    quarters,
+    total: quarters.q1 + quarters.q2 + quarters.q3 + quarters.q4
   };
 
   return (
