@@ -7,7 +7,6 @@ import { Settings } from './components/settings/Settings';
 import { TransactionForm } from './components/transactions/TransactionForm';
 import { AuthForm } from './components/auth/AuthForm';
 import { BottomNavigation } from './components/navigation/BottomNavigation';
-import { FloatingActionButton } from './components/navigation/FloatingActionButton';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { supabase } from './lib/supabaseClient';
 import { Transaction } from './types';
@@ -247,8 +246,6 @@ const AppContent: React.FC = () => {
         {renderContent()}
       </div>
 
-      <FloatingActionButton onClick={() => setIsTransactionModalOpen(true)} />
-      
       <BottomNavigation
         activeTab={activeTab}
         onTabChange={setActiveTab}
