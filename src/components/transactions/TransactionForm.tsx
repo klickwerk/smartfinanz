@@ -60,15 +60,6 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Check if user is part of a family (required for RLS policy)
-    if (!userFamilyId) {
-      setValidationErrors(['Du musst einer Familie angehören, um Transaktionen zu erstellen. Bitte erstelle oder trete einer Familie bei.']);
-      setTimeout(() => {
-        setValidationErrors([]);
-      }, 5000);
-      return;
-    }
-    
     // Validiere das Formular mit der ausgelagerten Validierungsfunktion
     const errors = validateTransactionForm(formData);
     
@@ -86,7 +77,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
       ...formData,
       amount: formData.type === 'expense' ? -Math.abs(Number(formData.amount)) : Math.abs(Number(formData.amount)),
       created_by: user?.id || '',
-      family_id: userFamilyId,
+      family_id: userFamilyId || null,
     };
 
     onSubmit(transaction);
