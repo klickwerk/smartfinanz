@@ -424,7 +424,7 @@ export const PermissionsProvider: React.FC<PermissionsProviderProps> = ({ childr
     email: string, 
     role: UserRole, 
     name?: string
-  ): Promise<{success: boolean; error?: string}> => {
+  ): Promise<{success: boolean; error?: string; message?: string}> => {
     if (!user) {
       return { success: false, error: 'Sie müssen angemeldet sein, um Mitglieder einzuladen.' };
     }
@@ -440,27 +440,78 @@ export const PermissionsProvider: React.FC<PermissionsProviderProps> = ({ childr
     }
     
     try {
-      // Call the RPC function to invite a family member
+      let targetUserId: string;
+      let invitationMessage = '';
+      
+      // First, try to find if user already exists
+      const { data: existingUser, error: userLookupError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', email)
+        .single();
+      
+      if (existingUser) {
+        // User already exists
+        targetUserId = existingUser.id;
+        invitationMessage = 'Bestehender Benutzer zur Familie hinzugefügt.';
+      } else if (userLookupError?.code === 'PGRST116') {
+        // User doesn't exist, invite them to the app
+        try {
+          const { data: inviteData, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(email, {
+            data: {
+              full_name: name || null,
+              family_id: userFamilyId,
+              role: role
+            },
+            redirectTo: `${window.location.origin}/auth/callback`
+          });
+          
+          if (inviteError) {
+            console.error('Error inviting user to app:', inviteError);
+            return { success: false, error: 'Fehler beim Senden der App-Einladung: ' + inviteError.message };
+          }
+          
+          if (!inviteData.user?.id) {
+            return { success: false, error: 'Fehler beim Erstellen der Benutzer-Einladung.' };
+          }
+          
+          targetUserId = inviteData.user.id;
+          invitationMessage = 'Einladung zur App gesendet. Der Benutzer wird nach der Registrierung automatisch zur Familie hinzugefügt.';
+        } catch (adminError: any) {
+          console.error('Error with admin invite:', adminError);
+          return { success: false, error: 'Fehler beim Senden der Einladung. Möglicherweise fehlen Admin-Berechtigungen.' };
+        }
+      } else {
+        // Other error during user lookup
+        console.error('Error looking up user:', userLookupError);
+        return { success: false, error: 'Fehler beim Suchen des Benutzers.' };
+      }
+      
+      // Now call the RPC function to add the user to the family
       const { data, error } = await supabase.rpc('invite_family_member', {
         p_email: email,
         p_family_id: userFamilyId,
         p_role: role,
-        p_name: name || null
+        p_name: name || null,
+        p_user_id: targetUserId
       });
       
       if (error) {
-        console.error('Error inviting family member:', error);
-        return { success: false, error: error.message || 'Fehler beim Einladen des Familienmitglieds.' };
+        console.error('Error adding family member:', error);
+        return { success: false, error: error.message || 'Fehler beim Hinzufügen zur Familie.' };
       }
       
       if (!data.success) {
-        return { success: false, error: data.error || 'Fehler beim Einladen des Familienmitglieds.' };
+        return { success: false, error: data.error || 'Fehler beim Hinzufügen zur Familie.' };
       }
       
-      // If successful, fetch the updated family members
-      // Note: fetchFamilyData is not available in this scope, would need to be refactored
+      // Refresh family data to show the new member
+      await refetchFamilyData();
       
-      return { success: true };
+      return { 
+        success: true, 
+        message: invitationMessage || data.message || 'Familienmitglied erfolgreich hinzugefügt.'
+      };
     } catch (error: any) {
       console.error('Error in inviteFamilyMemberByEmail:', error);
       return { success: false, error: error.message || 'Ein unbekannter Fehler ist aufgetreten.' };
