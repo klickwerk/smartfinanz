@@ -75,27 +75,52 @@ export const PermissionsProvider: React.FC<PermissionsProviderProps> = ({ childr
 
     setIsLoading(true);
     try {
-      if (!user || isLoading) {
+      // Check if Supabase is properly configured
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      
+      if (!supabaseUrl || !supabaseAnonKey) {
+        console.error('Supabase configuration missing. Please check your .env file.');
         setIsLoading(false);
         return;
       }
 
         // First, get the user's profile to get their name
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles') 
-          .select('id, full_name, avatar_url')
-          .eq('id', user.id) 
-          .single(); 
+        let profileData = null;
+        let profileError = null;
+        
+        try {
+          const result = await supabase
+            .from('profiles') 
+            .select('id, full_name, avatar_url')
+            .eq('id', user.id) 
+            .single();
+          profileData = result.data;
+          profileError = result.error;
+        } catch (fetchError) {
+          console.error('Network error fetching profile:', fetchError);
+          profileError = { message: 'Network error', code: 'NETWORK_ERROR' };
+        }
 
         if (profileError && profileError.code !== 'PGRST116') {
           console.error('Error fetching user profile:', profileError);
         }
 
         // Then, get the user's family memberships
-        const { data: membershipData, error: membershipError } = await supabase
-          .from('family_members') 
-          .select('id, family_id, user_id, role')
-          .eq('user_id', user.id); 
+        let membershipData = null;
+        let membershipError = null;
+        
+        try {
+          const result = await supabase
+            .from('family_members') 
+            .select('id, family_id, user_id, role')
+            .eq('user_id', user.id);
+          membershipData = result.data;
+          membershipError = result.error;
+        } catch (fetchError) {
+          console.error('Network error fetching family memberships:', fetchError);
+          membershipError = { message: 'Network error', code: 'NETWORK_ERROR' };
+        }
 
         if (membershipError) {
           console.error('Error fetching family memberships:', membershipError);
