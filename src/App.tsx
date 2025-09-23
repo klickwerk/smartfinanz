@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Dashboard } from './components/dashboard/Dashboard';
-import { FinancialBoard } from './components/board/FinancialBoard';
+import { PlanningBoard } from './components/planung/PlanningBoard';
 import { FinancialProjects } from './components/projects/FinancialProjects';
 import { TransactionsList } from './components/transactions/TransactionsList';
 import { Settings } from './components/settings/Settings';
@@ -9,7 +9,7 @@ import { AuthForm } from './components/auth/AuthForm';
 import { BottomNavigation } from './components/navigation/BottomNavigation';
 import { FloatingActionButton } from './components/navigation/FloatingActionButton';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { supabase } from './lib/supabase';
+import { supabase } from './lib/supabaseClient';
 import { Transaction } from './types';
 
 // Main App Content (wrapped in AuthProvider)
@@ -205,7 +205,7 @@ const AppContent: React.FC = () => {
         return <Dashboard transactions={transactions} />;
       case 'board':
         return (
-          <FinancialBoard
+          <PlanningBoard
             transactions={transactions}
             onEditTransaction={handleEditTransaction}
             onMarkCompleted={handleMarkCompleted}

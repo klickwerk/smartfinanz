@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Trophy, TrendingUp } from 'lucide-react';
 import { ProjectCard } from './ProjectCard';
 import { GlassCard } from '../common/GlassCard';
-import { supabase } from '../../lib/supabase';
+import { supabase } from '../../lib/supabaseClient';
 import { useAuth } from '../../context/AuthContext';
 import { FinancialProject } from '../../types';
 
