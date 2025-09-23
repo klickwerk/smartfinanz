@@ -75,16 +75,6 @@ export const PermissionsProvider: React.FC<PermissionsProviderProps> = ({ childr
 
     setIsLoading(true);
     try {
-      // Check if Supabase is properly configured
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-      
-      if (!supabaseUrl || !supabaseAnonKey) {
-        console.error('Supabase configuration missing. Please check your .env file.');
-        setIsLoading(false);
-        return;
-      }
-
         // First, get the user's profile to get their name
         let profileData = null;
         let profileError = null;

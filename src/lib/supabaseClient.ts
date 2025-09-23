@@ -1,7 +1,9 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+
+let supabase: SupabaseClient;
 
 if (!supabaseUrl || !supabaseAnonKey) {
   console.error('Supabase configuration missing!');
@@ -9,9 +11,39 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.error('VITE_SUPABASE_URL=your_supabase_project_url');
   console.error('VITE_SUPABASE_ANON_KEY=your_supabase_anon_key');
   console.error('You can find these values in your Supabase project dashboard under Settings > API');
+
+  // Create a dummy Supabase client that logs errors when used
+  const dummyClientMethod = (methodName: string) => (...args: any[]) => {
+    console.error(`Supabase client is not configured. Cannot call method "${methodName}". Please check your .env file.`);
+    return Promise.resolve({ data: null, error: { message: 'Supabase client not configured', status: 500 } });
+  };
+
+  supabase = {
+    auth: {
+      getSession: dummyClientMethod('auth.getSession'),
+      signUp: dummyClientMethod('auth.signUp'),
+      signInWithPassword: dummyClientMethod('auth.signInWithPassword'),
+      signOut: dummyClientMethod('auth.signOut'),
+      resetPasswordForEmail: dummyClientMethod('auth.resetPasswordForEmail'),
+      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }), // Mock subscription
+    },
+    from: () => ({
+      select: dummyClientMethod('from().select'),
+      eq: dummyClientMethod('from().eq'),
+      in: dummyClientMethod('from().in'),
+      single: dummyClientMethod('from().single'),
+      insert: dummyClientMethod('from().insert'),
+      update: dummyClientMethod('from().update'),
+      delete: dummyClientMethod('from().delete'),
+    }),
+    rpc: dummyClientMethod('rpc'),
+    // Add other necessary mock methods if they are used directly
+  } as unknown as SupabaseClient; // Cast to SupabaseClient to satisfy type checker
+} else {
+  supabase = createClient(supabaseUrl, supabaseAnonKey);
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export { supabase };
 
 // Type definitions for our Supabase Database
 export type Database = {
