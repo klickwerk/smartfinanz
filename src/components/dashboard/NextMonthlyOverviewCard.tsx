@@ -19,9 +19,18 @@ export const NextMonthlyOverviewCard: React.FC<NextMonthlyOverviewCardProps> = (
   currentMonthData 
 }) => {
   const { displayCurrency } = useCurrency();
-  const currentMonth = new Date().getMonth();
-  const nextMonth = new Date(new Date().setMonth(currentMonth + 1));
-  const daysUntilNextMonth = Math.ceil((nextMonth.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+  
+  // Calculate actual days until next month
+  const today = new Date();
+  const currentYear = today.getFullYear();
+  const currentMonth = today.getMonth();
+  
+  // Get the first day of next month
+  const firstDayOfNextMonth = new Date(currentYear, currentMonth + 1, 1);
+  
+  // Calculate the difference in days
+  const timeDifference = firstDayOfNextMonth.getTime() - today.getTime();
+  const daysUntilNextMonth = Math.ceil(timeDifference / (1000 * 60 * 60 * 24));
 
   // Calculate planning percentage dynamically - percentage of income that is planned for expenses
   const plannedPercentage = nextMonthData.income > 0 
