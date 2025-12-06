@@ -120,7 +120,7 @@ export const FinancialBoard: React.FC<FinancialBoardProps> = ({
     icon: React.ReactNode,
     accentColor: string
   ) => (
-    <div className="flex-1 min-w-0">
+    <div className="flex-shrink-0 w-[300px]">
       <div className="bg-zinc-800/30 backdrop-blur-md rounded-2xl p-4 h-full">
         {/* Column header */}
         <div className="flex items-center gap-3 mb-4">
@@ -189,7 +189,7 @@ export const FinancialBoard: React.FC<FinancialBoardProps> = ({
       </div>
 
       {/* Board columns */}
-      <div className="flex gap-4 overflow-x-auto pb-4">
+      <div className="flex gap-4 overflow-x-auto pb-4 -mx-6 px-6">
         {renderColumn(
           'Backlog (Überfällig)',
           backlogTransactions,
